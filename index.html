@@ -31,10 +31,13 @@
     .main-content { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; }
     .header { height: 80px; padding: 0 40px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--glass-border); }
     .time-box { background: rgba(16, 185, 129, 0.1); padding: 10px 22px; border-radius: 14px; border: 1px solid rgba(16, 185, 129, 0.2); font-weight: 700; color: var(--primary); }
-    .content-area { padding: 20px; flex-grow: 1; overflow: hidden; }
-    .view { display: none; height: 100%; }
+
+    /* ⚠️ əvvəl hidden idi */
+    .content-area { padding: 20px; flex-grow: 1; overflow: auto; }
+
+    .view { display: none; height: 100%; overflow: auto; }
     .view.active { display: block; }
-    .glass-window { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(15px); border: 1px solid var(--glass-border); border-radius: 24px; display: flex; flex-direction: column; padding: 20px; height: 100%; }
+    .glass-window { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(15px); border: 1px solid var(--glass-border); border-radius: 24px; display: flex; flex-direction: column; padding: 20px; height: 100%; min-height: 0; }
 
     /* POS */
     .pos-container { display: flex; height: 100%; gap: 15px; }
@@ -68,6 +71,10 @@
       #print-area { position: absolute; left: 0; top: 0; width: 80mm; background: white; color: black; padding: 20px; font-family: 'Courier New', Courier, monospace; display: block !important; }
     }
     #print-area { display: none; }
+
+    /* ✅ A VARİANTI əlavə stabil davranış */
+    #view-report { overflow: auto; }
+    #view-report .glass-window { overflow: auto; }
   </style>
 </head>
 
@@ -291,7 +298,6 @@
       signOut
     } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 
-    // ✅ SƏNİN CONFIG
     const firebaseConfig = {
       apiKey: "AIzaSyDb_Td0FYgrJLWlwI6dIY_g7RVoeAb9Tpk",
       authDomain: "eqzotika-2205f.firebaseapp.com",
@@ -301,24 +307,20 @@
       appId: "1:404077205202:web:ca913cc772ae624e74ff0b"
     };
 
-    // ==== INIT ====
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
 
-    // 🔧 Filial
     const BRANCH_ID = "main_branch";
     const ADMIN_EMAIL = "admin@eqzotika.local";
 
-    // ==== PATH HELPERS ====
     const refBranch = (...parts) => doc(db, "branches", BRANCH_ID, ...parts);
     const colBranch = (...parts) => collection(db, "branches", BRANCH_ID, ...parts);
 
-    const refTables = refBranch("meta", "tables");     // { tables:[], tableOrders:{} }
-    const refPrivate = refBranch("meta", "private");   // { resetCode:"...." }
+    const refTables = refBranch("meta", "tables");
+    const refPrivate = refBranch("meta", "private");
 
-    // ==== APP STATE ====
-    let currentRole = "staff"; // 'admin' | 'staff'
+    let currentRole = "staff";
     let currentUser = null;
 
     let inventory = {};
@@ -333,7 +335,6 @@
     let unsubscribers = [];
     let clockTimer = null;
 
-    // ==== HELPERS ====
     const $ = (id) => document.getElementById(id);
 
     const isAdmin = () => currentRole === 'admin';
@@ -402,20 +403,17 @@
     }
 
     function goToPosDefault(){
-      // həmişə POS-a qaytar
       document.querySelectorAll('.view').forEach(x => x.classList.remove('active'));
       document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
       $("view-pos").classList.add('active');
       $("nav-pos").classList.add('active');
       $("page-title").innerText = "Satış Terminalı";
-      // order panel dərhal yenilə
       renderTables();
       renderOrderList();
       recalcTotals();
       renderMenu();
     }
 
-    // ==== INIT DOCS ====
     async function ensureInitDocs(){
       const tSnap = await getDoc(refTables);
       if(!tSnap.exists()){
@@ -429,7 +427,6 @@
       }
     }
 
-    // ==== REALTIME LISTENERS ====
     function stopRealtime(){
       unsubscribers.forEach(fn => { try{ fn(); }catch(e){} });
       unsubscribers = [];
@@ -463,7 +460,7 @@
           if(activeIdx >= tables.length) activeIdx = 0;
 
           renderTables();
-          renderOrderList();     // ✅ ofisiant da görsün
+          renderOrderList();
           recalcTotals();
           fillReportTablesDropdown();
         })
@@ -479,7 +476,6 @@
       unsubscribers.push(
         onSnapshot(query(colBranch("sales"), orderBy("id","desc")), (snap) => {
           sales = snap.docs.map(d => d.data());
-          // admin report/expense canlı
           if(isAdmin()){
             renderExpenses();
             if($("view-report").classList.contains('active')) renderReport();
@@ -498,7 +494,6 @@
       );
     }
 
-    // ==== WRITES ====
     async function writeTablesState(){
       const clean = {};
       (tables||[]).forEach(t => clean[t] = Array.isArray(tableOrders[t]) ? tableOrders[t] : []);
@@ -518,7 +513,6 @@
       await setDoc(refPrivate, { resetCode: String(newCode) }, { merge: true });
     }
 
-    // ==== UI RENDER ====
     function renderTables(){
       const list = $("table-list");
       if(!list) return;
@@ -637,7 +631,6 @@
       sel.value = curr || "";
     }
 
-    // ==== REPORTS (Masa üzrə sifarişlər daxil) ====
     function renderReport(){
       if(!requireAdmin()) return;
 
@@ -666,9 +659,8 @@
       const exp = filteredExp.reduce((a,b)=>a+(b.val||0),0);
       const profit = gross - cst - exp;
 
-      // Masa stats + Masa items (hansı masaya nə verilib)
       const tableStats = {};
-      const tableItems = {};  // { masa: { product: qty } }
+      const tableItems = {};
       filteredSales.forEach(s => {
         const t = s.table || "N/A";
         if(!tableStats[t]) tableStats[t] = { sum: 0, count: 0 };
@@ -799,7 +791,6 @@
       $("z-box").style.display = 'block';
     }
 
-    // ==== POS CALC + PRINT ====
     function getCurrentSubtotal(){
       if(!tables.length) return 0;
       const tName = tables[activeIdx];
@@ -868,7 +859,6 @@
       window.print();
     }
 
-    // ==== ACTIONS ====
     async function selectTable(i){
       activeIdx = i;
       renderTables();
@@ -907,7 +897,7 @@
         order.push({ name: n, qty: 1, price: Number(inventory[n].sell||0), cost: Number(inventory[n].cost||0) });
       }
 
-      await writeTablesState(); // ✅ ofisiant vuranda dərhal sağda görünür (snapshot da gəlir)
+      await writeTablesState();
     }
 
     async function updateOrderQty(encodedName, delta){
@@ -1002,7 +992,6 @@
       }
     }
 
-    // ✅ COMPLETE ORDER: staff də edə bilər, stok azalır, sales yazılır, tables boşalır
     async function completeOrderAction(){
       const tName = tables[activeIdx];
       const order = tableOrders[tName] || [];
@@ -1020,7 +1009,6 @@
 
       try{
         await runTransaction(db, async (tx) => {
-          // READS FIRST
           const tablesSnap = await tx.get(refTables);
           if(!tablesSnap.exists()) throw new Error("Tables state tapılmadı!");
 
@@ -1032,7 +1020,6 @@
             invSnaps.push({ it, invRef, inv: invSnap.data() });
           }
 
-          // CALC (no writes yet)
           let cst = 0;
           for(const x of invSnaps){
             const have = Number(x.inv.qty || 0);
@@ -1041,7 +1028,6 @@
             cst += Number(x.inv.cost || 0) * need;
           }
 
-          // WRITES
           for(const x of invSnaps){
             const have = Number(x.inv.qty || 0);
             const need = Number(x.it.qty || 0);
@@ -1077,7 +1063,6 @@
           tx.set(refTables, { tables: tbl, tableOrders: ords }, { merge: true });
         });
 
-        // UI reset
         $("disc-pct").value = '';
         $("svc-pct").value = '';
         $("pay-type").value = 'Nağd';
@@ -1148,13 +1133,11 @@
       tables.forEach(t => tableOrders[t] = []);
       activeIdx = 0;
 
-      // Bu reset: masalar + sifarişlər
       await setDoc(refTables, { tables, tableOrders }, { merge: false });
 
       alert("Sistem sıfırlandı (masalar/sifarişlər).");
     }
 
-    // ==== NAV ====
     function switchTab(v, el){
       const adminViews = ['purchase','stock','expense','report'];
       if(adminViews.includes(v) && !isAdmin()){
@@ -1177,7 +1160,6 @@
       $("page-title").innerText = titles[v] || 'Keeper Pro';
     }
 
-    // ==== AUTH FLOW ====
     async function loginAdminEmail(){
       setLoginMsg("");
       const email = $("admin-email").value.trim();
@@ -1202,25 +1184,20 @@
     }
 
     async function logoutAction(){
-      // UI reset
       stopRealtime();
       if(clockTimer) { clearInterval(clockTimer); clockTimer = null; }
 
-      // form təmizlə
       $("admin-email").value = ADMIN_EMAIL;
       $("admin-pass").value = "";
       setLoginMsg("");
 
       try{ await signOut(auth); } catch(e){}
 
-      // overlay göstər
       $("login-overlay").style.display = 'flex';
 
-      // admin UI gizlət
       currentRole = "staff";
       hideAdminUI();
 
-      // view həmişə POS
       goToPosDefault();
     }
 
@@ -1249,26 +1226,20 @@
         fillReportTablesDropdown();
       }
 
-      // girişdən sonra overlay gizlət
       $("login-overlay").style.display = 'none';
-
-      // hər login-də POS-a qaytar (sənin dediyin problem)
       goToPosDefault();
     }
 
-    // Auth state listener
     onAuthStateChanged(auth, async (user) => {
       currentUser = user;
 
       if(!user){
-        // logged out
         currentRole = "staff";
         hideAdminUI();
         $("login-overlay").style.display = 'flex';
         return;
       }
 
-      // role
       if(user.email && user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()){
         currentRole = "admin";
         showAdminUI();
@@ -1280,7 +1251,7 @@
       await initAfterLogin();
     });
 
-    // ==== EXPORTS for onclick ====
+    // EXPORTS
     window.switchTab = switchTab;
     window.selectTable = selectTable;
     window.addTablePrompt = addTablePrompt;
