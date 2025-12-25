@@ -246,6 +246,16 @@
 
           <div id="rep-stats" style="display:flex; gap:15px; margin:20px 0; flex-wrap:wrap;"></div>
 
+          <!-- ✅ GÜN ƏRZİNDƏ MASA ÜZRƏ NƏLƏR VERİLİB -->
+          <div class="glass-window" style="height:auto; padding:15px; margin-bottom:15px;">
+            <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+              <div style="font-weight:800; color:var(--accent);">Gün ərzində masa üzrə verilənlər</div>
+              <input type="date" id="day-table-date" class="glass-input" style="width:220px; margin-bottom:0;">
+              <button class="btn-action" style="background:rgba(255,255,255,0.1); width:220px;" onclick="renderDayTableSummary()">GÖSTƏR</button>
+            </div>
+            <div id="day-table-box" style="margin-top:12px; line-height:1.65; opacity:.95;"></div>
+          </div>
+
           <table class="glass-table">
             <thead><tr><th>Tarix</th><th>Növ</th><th>Detallar</th><th>Məbləğ</th></tr></thead>
             <tbody id="rep-history"></tbody>
@@ -279,7 +289,7 @@
     };
 
     // ⚠️ ADMIN EMAIL-i BURDA YAZ (email ekranda görünməyəcək)
-    const ADMIN_EMAIL = "ADMIN_EMAIL_BURAYA_YAZ";  // məsələn: admin@seninmekan.az
+    const ADMIN_EMAIL = "ADMIN_EMAIL_BURAYA_YAZ"; // məsələn: admin@seninmekan.az
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
@@ -293,7 +303,7 @@
     const colBranch = (...parts) => collection(db, "branches", BRANCH_ID, ...parts);
 
     const refTables  = refBranch("meta", "tables");
-    const refPublic  = refBranch("meta", "public");   // adminUid burada (signed-in oxuya bilir)
+    const refPublic  = refBranch("meta", "public");   // adminUid burada
     const refPrivate = refBranch("meta", "private");  // resetCode burada (yalnız admin)
 
     let currentRole = "staff";
@@ -415,7 +425,7 @@
         })
       );
 
-      // admin-only streams
+      // admin streams (rule-lar admin olmadan oxumağa icazə verməyə bilər)
       unsubscribers.push(
         onSnapshot(query(colBranch("purchases"), orderBy("id","desc")), (snap) => {
           purchases = snap.docs.map(d => d.data());
@@ -616,6 +626,54 @@
           h.innerHTML += `<tr><td>${x.date||""}</td><td style="color:#ef4444">Xərc</td><td>${x.name||""}</td><td>${(-Number(x.val||0)).toFixed(2)}</td></tr>`;
         }
       });
+    }
+
+    // ✅ GÜN ƏRZİNDƏ MASA ÜZRƏ NƏLƏR VERİLİB
+    function renderDayTableSummary(){
+      if(!requireAdmin()) return;
+
+      const iso = document.getElementById("day-table-date")?.value || todayISO();
+
+      const daySales = (sales||[])
+        .map(s => ({...s, dateISO: s.dateISO || toISOFromLocalDateString(s.date) || ""}))
+        .filter(s => s.dateISO === iso);
+
+      const byTable = {}; // { Masa 1: { Cay: 3, Kabab: 1 } }
+      daySales.forEach(s => {
+        const t = s.table || "Naməlum masa";
+        if(!byTable[t]) byTable[t] = {};
+        (s.items || []).forEach(it => {
+          const name = it.name || "Məhsul";
+          const qty = Number(it.qty || 0);
+          byTable[t][name] = (byTable[t][name] || 0) + qty;
+        });
+      });
+
+      const box = document.getElementById("day-table-box");
+      if(!box) return;
+
+      const tableNames = Object.keys(byTable);
+      if(!tableNames.length){
+        box.innerHTML = `<div style="opacity:.8;">${iso} tarixində satış yoxdur.</div>`;
+        return;
+      }
+
+      let html = "";
+      tableNames.sort().forEach(t => {
+        const items = Object.entries(byTable[t])
+          .sort((a,b)=> b[1]-a[1])
+          .map(([name, qty]) => `${name} <b>x${qty}</b>`)
+          .join(", ");
+
+        html += `
+          <div style="margin-bottom:10px;">
+            <div style="font-weight:800; color:var(--accent); margin-bottom:4px;">${t}</div>
+            <div style="opacity:.95;">${items || "Məlumat yoxdur"}</div>
+          </div>
+        `;
+      });
+
+      box.innerHTML = html;
     }
 
     // ===== POS TOTALS + PRINT =====
@@ -901,7 +959,6 @@
         document.getElementById('svc-pct').value = '';
         document.getElementById('pay-type').value = 'Nağd';
         alert("Sifariş tamamlandı!");
-
       } catch(err){
         alert(err?.message || "Xəta baş verdi!");
       }
@@ -962,7 +1019,6 @@
       if(confirmText === null) return;
       if(String(confirmText).trim().toUpperCase() !== "SIFIRLA") return alert("Təsdiq ləğv edildi.");
 
-      // Full wipe (inventory/purchases/sales/expenses)
       for(const c of ["inventory","purchases","sales","expenses"]){
         const snap = await getDocs(colBranch(c));
         if(!snap.empty){
@@ -972,7 +1028,6 @@
         }
       }
 
-      // reset tables
       const initTables = ["Masa 1","Masa 2","Masa 3"];
       const initOrders = {};
       initTables.forEach(t => initOrders[t]=[]);
@@ -982,7 +1037,7 @@
       alert("Bütün data tam sıfırlandı!");
     }
 
-    // ===== AUTH (admin yalnız parol) =====
+    // ===== AUTH =====
     async function adminLogin(){
       const passEl = document.getElementById("admin-pass");
       const pass = passEl ? passEl.value : "";
@@ -1026,8 +1081,11 @@
       const iso = todayISO();
       const repFrom = document.getElementById("rep-from");
       const repTo = document.getElementById("rep-to");
+      const dayBox = document.getElementById("day-table-date");
+
       if(repFrom && !repFrom.value) repFrom.value = iso;
       if(repTo && !repTo.value) repTo.value = iso;
+      if(dayBox && !dayBox.value) dayBox.value = iso;
 
       if(clockTimer) clearInterval(clockTimer);
       clockTimer = setInterval(() => {
@@ -1063,7 +1121,7 @@
       if(v==="stock") renderStock();
       if(v==="purchase") renderPurchases();
       if(v==="expense") renderExpenses();
-      if(v==="report") renderReport();
+      if(v==="report") { renderReport(); }
       if(v==="pos"){ renderMenu(); renderOrderList(); recalcTotals(); }
     }
 
@@ -1116,6 +1174,7 @@
     window.deleteExpense = deleteExpense;
 
     window.renderReport = renderReport;
+    window.renderDayTableSummary = renderDayTableSummary;
 
     window.resetDataPrompt = resetDataPrompt;
     window.setResetCodePrompt = setResetCodePrompt;
