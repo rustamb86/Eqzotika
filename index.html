@@ -15,11 +15,9 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
     body { background: linear-gradient(135deg, #064e3b 0%, #020617 100%); height: 100vh; display: flex; color: var(--text-color); overflow: hidden; }
 
-    /* LOGIN */
     #login-overlay { position: fixed; inset: 0; background: rgba(2, 6, 23, 0.98); z-index: 1000; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(15px); }
     .login-card { background: var(--glass-bg); padding: 40px; border-radius: 30px; border: 1px solid var(--glass-border); text-align: center; width: 380px; }
 
-    /* SIDEBAR */
     .sidebar { width: var(--sidebar-width); background: var(--glass-bg); border-right: 1px solid var(--glass-border); display: flex; flex-direction: column; padding: 30px 20px; z-index: 100; flex-shrink: 0; }
     .logo-area { display: flex; align-items: center; gap: 15px; margin-bottom: 50px; }
     .logo-text { font-size: 22px; font-weight: 800; color: #fff; }
@@ -27,7 +25,6 @@
     .nav-item { padding: 14px 18px; cursor: pointer; display: flex; align-items: center; gap: 15px; font-weight: 500; font-size: 15px; color: rgba(248, 250, 252, 0.6); transition: 0.3s; border-radius: 16px; margin-bottom: 10px; }
     .nav-item.active { background: linear-gradient(135deg, var(--primary) 0%, #059669 100%); color: #fff; }
 
-    /* MAIN */
     .main-content { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; }
     .header { height: 80px; padding: 0 40px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--glass-border); }
     .time-box { background: rgba(16, 185, 129, 0.1); padding: 10px 22px; border-radius: 14px; border: 1px solid rgba(16, 185, 129, 0.2); font-weight: 700; color: var(--primary); }
@@ -36,7 +33,6 @@
     .view.active { display: block; }
     .glass-window { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(15px); border: 1px solid var(--glass-border); border-radius: 24px; display: flex; flex-direction: column; padding: 20px; height: 100%; }
 
-    /* POS */
     .pos-container { display: flex; height: 100%; gap: 15px; }
     .table-item { background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border); border-radius: 12px; padding: 15px; text-align: center; cursor: pointer; margin-bottom: 10px; transition: 0.3s; }
     .table-item.active { border-color: var(--accent); color: var(--accent); background: rgba(251, 191, 36, 0.1); }
@@ -48,20 +44,17 @@
     .stock-tag { position: absolute; top: 5px; right: 8px; font-size: 10px; color: var(--accent); font-weight: bold; }
     .out-of-stock { opacity: 0.4; filter: grayscale(1); cursor: not-allowed; }
 
-    /* ORDER */
     .order-row { display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.03); padding: 10px; border-radius: 14px; margin-bottom: 8px; border: 1px solid rgba(255,255,255,0.05); }
     .qty-controls { display: flex; align-items: center; gap: 8px; }
     .qty-btn { background: none; border: none; color: #fff; cursor: pointer; width: 22px; height: 22px; font-weight: bold; }
     .trash-btn { color: var(--danger); background: none; border: none; cursor: pointer; margin-left: 10px; font-size: 18px; }
 
-    /* INPUTS & TABLES */
     .glass-input { background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); padding: 12px; border-radius: 12px; color: white; width: 100%; margin-bottom: 10px; outline: none; }
     .btn-action { padding: 15px; border: none; border-radius: 16px; color: #fff; font-weight: 700; cursor: pointer; width: 100%; transition: 0.2s; }
     .glass-table { width: 100%; border-collapse: collapse; }
     .glass-table th { text-align: left; padding: 12px; color: var(--accent); border-bottom: 2px solid var(--glass-border); }
     .glass-table td { padding: 12px; border-bottom: 1px solid var(--glass-border); }
 
-    /* PRINT */
     @media print {
       body * { visibility: hidden; }
       #print-area, #print-area * { visibility: visible; }
@@ -78,13 +71,13 @@
       <i class="fa-solid fa-gem" style="font-size: 40px; color: var(--accent); margin-bottom: 20px;"></i>
       <h2 style="margin-bottom: 18px;">Sistemə Giriş</h2>
 
-      <div style="text-align:left; margin-bottom:10px; opacity:.9; font-weight:700;">ADMIN (yalnız parol)</div>
-      <input type="password" id="admin-pass" class="glass-input" placeholder="Admin parol" autocomplete="new-password">
-      <button class="btn-action" style="background: var(--primary); margin-bottom: 14px;" onclick="adminLogin()">DAXİL OL</button>
+      <button class="btn-action" style="background: var(--primary); margin-bottom: 12px;" onclick="adminGoogleLogin()">
+        <i class="fa-brands fa-google"></i> ADMIN (Google)
+      </button>
 
-      <div style="height:1px; background:rgba(255,255,255,0.08); margin:14px 0;"></div>
-
-      <button class="btn-action" style="background: rgba(255,255,255,0.1);" onclick="staffLogin()">OFİSİANT GİRİŞİ</button>
+      <button class="btn-action" style="background: rgba(255,255,255,0.1);" onclick="staffLogin()">
+        <i class="fa-solid fa-user"></i> OFİSİANT GİRİŞİ
+      </button>
 
       <div id="login-hint" style="margin-top:14px; font-size:12px; opacity:.75;"></div>
     </div>
@@ -275,7 +268,7 @@
       onSnapshot, query, orderBy, runTransaction, getDocs, writeBatch
     } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
     import {
-      getAuth, signInWithEmailAndPassword, signInAnonymously, signOut, onAuthStateChanged
+      getAuth, signInWithPopup, GoogleAuthProvider, signInAnonymously, signOut, onAuthStateChanged
     } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 
     // ✅ SƏNİN CONFIG
@@ -288,17 +281,13 @@
       appId: "1:404077205202:web:ca913cc772ae624e74ff0b"
     };
 
-    // ⚠️ ADMIN EMAIL-i BURDA YAZ (email ekranda görünməyəcək)
-    const ADMIN_EMAIL = "ADMIN_EMAIL_BURAYA_YAZ"; // məsələn: admin@seninmekan.az
-
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
 
-    // Branch
     const BRANCH_ID = "main_branch";
 
-    // helpers
     const refBranch = (...parts) => doc(db, "branches", BRANCH_ID, ...parts);
     const colBranch = (...parts) => collection(db, "branches", BRANCH_ID, ...parts);
 
@@ -307,6 +296,7 @@
     const refPrivate = refBranch("meta", "private");  // resetCode burada (yalnız admin)
 
     let currentRole = "staff";
+
     let inventory = {};
     let purchases = [];
     let sales = [];
@@ -355,18 +345,15 @@
       });
     }
 
-    // ===== INIT ADMIN DOCS (FIRST TIME ADMIN) =====
     async function ensureAdminInitDocs(user){
       const pubSnap = await getDoc(refPublic);
       if(!pubSnap.exists()){
         await setDoc(refPublic, { adminUid: user.uid }, { merge: false });
       }
-
       const prvSnap = await getDoc(refPrivate);
       if(!prvSnap.exists()){
         await setDoc(refPrivate, { resetCode: "1234" }, { merge: false });
       }
-
       const tSnap = await getDoc(refTables);
       if(!tSnap.exists()){
         const initTables = ["Masa 1","Masa 2","Masa 3"];
@@ -378,15 +365,12 @@
 
     async function detectRole(user){
       if(user.isAnonymous) return "staff";
-
       const pubSnap = await getDoc(refPublic);
-      if(!pubSnap.exists()) return "admin"; // ilk email/parol girən admin init edəcək
-
+      if(!pubSnap.exists()) return "admin"; // ilk Google girən init edəcək
       const adminUid = pubSnap.data()?.adminUid;
       return (adminUid && adminUid === user.uid) ? "admin" : "staff";
     }
 
-    // ===== REALTIME =====
     function stopRealtime(){
       unsubscribers.forEach(fn => { try{ fn(); }catch(e){} });
       unsubscribers = [];
@@ -398,10 +382,7 @@
       unsubscribers.push(
         onSnapshot(colBranch("inventory"), (snap) => {
           const next = {};
-          snap.forEach(d => {
-            const v = d.data() || {};
-            if(v.name) next[v.name] = v;
-          });
+          snap.forEach(d => { const v = d.data() || {}; if(v.name) next[v.name] = v; });
           inventory = next;
           renderMenu();
           if(isAdmin() && document.getElementById("view-stock").classList.contains("active")) renderStock();
@@ -425,7 +406,6 @@
         })
       );
 
-      // admin streams (rule-lar admin olmadan oxumağa icazə verməyə bilər)
       unsubscribers.push(
         onSnapshot(query(colBranch("purchases"), orderBy("id","desc")), (snap) => {
           purchases = snap.docs.map(d => d.data());
@@ -450,13 +430,11 @@
       );
     }
 
-    // ===== WRITES =====
     async function writeTablesState(){
       const clean = {};
       (tables||[]).forEach(t => clean[t] = Array.isArray(tableOrders[t]) ? tableOrders[t] : []);
       await setDoc(refTables, { tables, tableOrders: clean }, { merge: true });
     }
-
     async function upsertInventoryItem(name, data){
       await setDoc(refBranch("inventory", safeId(name)), { ...data, name }, { merge: true });
     }
@@ -469,7 +447,7 @@
       await setDoc(refPrivate, { resetCode: String(newCode) }, { merge: true });
     }
 
-    // ===== UI RENDER =====
+    // ===== RENDER =====
     function renderTables(){
       const list = document.getElementById("table-list");
       if(!list) return;
@@ -577,7 +555,6 @@
       sel.value = curr || "";
     }
 
-    // ===== REPORT =====
     function renderReport(){
       if(!requireAdmin()) return;
 
@@ -628,17 +605,15 @@
       });
     }
 
-    // ✅ GÜN ƏRZİNDƏ MASA ÜZRƏ NƏLƏR VERİLİB
     function renderDayTableSummary(){
       if(!requireAdmin()) return;
 
       const iso = document.getElementById("day-table-date")?.value || todayISO();
-
       const daySales = (sales||[])
         .map(s => ({...s, dateISO: s.dateISO || toISOFromLocalDateString(s.date) || ""}))
         .filter(s => s.dateISO === iso);
 
-      const byTable = {}; // { Masa 1: { Cay: 3, Kabab: 1 } }
+      const byTable = {};
       daySales.forEach(s => {
         const t = s.table || "Naməlum masa";
         if(!byTable[t]) byTable[t] = {};
@@ -672,11 +647,9 @@
           </div>
         `;
       });
-
       box.innerHTML = html;
     }
 
-    // ===== POS TOTALS + PRINT =====
     function getCurrentSubtotal(){
       if(!tables.length) return 0;
       const tName = tables[activeIdx];
@@ -718,7 +691,6 @@
       window.print();
     }
 
-    // ===== ACTIONS =====
     async function selectTable(i){
       activeIdx = i;
       renderTables();
@@ -754,7 +726,6 @@
       } else {
         order.push({ name: n, qty: 1, price: Number(inventory[n].sell||0), cost: Number(inventory[n].cost||0) });
       }
-
       await writeTablesState();
     }
 
@@ -847,7 +818,8 @@
       }
     }
 
-    // ✅ STAFF: sale + masa boşalır (stok düşmür) | ✅ ADMIN: stok da düşür
+    // ✅ STAFF: sale yazır + masa boşalır, stok düşmür
+    // ✅ ADMIN: sale yazır + stok düşür + masa boşalır
     async function completeOrderAction(){
       const tName = tables[activeIdx];
       const order = tableOrders[tName] || [];
@@ -860,13 +832,12 @@
       const saleRef = refBranch("sales", String(saleId));
 
       try{
-        // STAFF
         if(!isAdmin()){
           await runTransaction(db, async (tx) => {
             const tablesSnap = await tx.get(refTables);
             if(!tablesSnap.exists()) throw new Error("Tables state tapılmadı!");
 
-            const saleObj = {
+            tx.set(saleRef, {
               id: saleId,
               date: new Date().toLocaleDateString(),
               dateISO: todayISO(),
@@ -883,8 +854,7 @@
               items: order.map(x => ({ name: x.name, qty: x.qty, price: x.price })),
               pendingStock: true,
               closedBy: "staff"
-            };
-            tx.set(saleRef, saleObj, { merge: true });
+            }, { merge: true });
 
             const d = tablesSnap.data() || {};
             const tbl = Array.isArray(d.tables) && d.tables.length ? d.tables : tables;
@@ -901,7 +871,6 @@
           return;
         }
 
-        // ADMIN
         await runTransaction(db, async (tx) => {
           const tablesSnap = await tx.get(refTables);
           if(!tablesSnap.exists()) throw new Error("Tables state tapılmadı!");
@@ -1037,18 +1006,12 @@
       alert("Bütün data tam sıfırlandı!");
     }
 
-    // ===== AUTH =====
-    async function adminLogin(){
-      const passEl = document.getElementById("admin-pass");
-      const pass = passEl ? passEl.value : "";
-      if(!pass) return alert("Admin parolu yaz!");
-      if(!ADMIN_EMAIL || ADMIN_EMAIL.includes("BURAYA") || ADMIN_EMAIL.includes("ADMIN_EMAIL")){
-        return alert("Kodda ADMIN_EMAIL doldurulmayıb!");
-      }
+    // ===== AUTH BUTTONS =====
+    async function adminGoogleLogin(){
       try{
-        await signInWithEmailAndPassword(auth, ADMIN_EMAIL, pass);
+        await signInWithPopup(auth, provider);
       }catch(e){
-        alert("Admin giriş alınmadı: " + (e?.message || "xəta"));
+        alert("Google giriş alınmadı: " + (e?.message || "xəta"));
       }
     }
 
@@ -1060,13 +1023,9 @@
       }
     }
 
-    // ✅ LOGOUT: inputlar boşalsın
     async function logoutAction(){
       stopRealtime();
       if(clockTimer){ clearInterval(clockTimer); clockTimer = null; }
-
-      const passEl = document.getElementById("admin-pass");
-      if(passEl) passEl.value = "";
 
       const hint = document.getElementById("login-hint");
       if(hint) hint.innerText = "";
@@ -1082,7 +1041,6 @@
       const repFrom = document.getElementById("rep-from");
       const repTo = document.getElementById("rep-to");
       const dayBox = document.getElementById("day-table-date");
-
       if(repFrom && !repFrom.value) repFrom.value = iso;
       if(repTo && !repTo.value) repTo.value = iso;
       if(dayBox && !dayBox.value) dayBox.value = iso;
@@ -1110,6 +1068,7 @@
         alert("Bu bölmə yalnız ADMIN üçündür!");
         return;
       }
+
       document.querySelectorAll(".view").forEach(x => x.classList.remove("active"));
       document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
       document.getElementById("view-"+v).classList.add("active");
@@ -1121,7 +1080,7 @@
       if(v==="stock") renderStock();
       if(v==="purchase") renderPurchases();
       if(v==="expense") renderExpenses();
-      if(v==="report") { renderReport(); }
+      if(v==="report") renderReport();
       if(v==="pos"){ renderMenu(); renderOrderList(); recalcTotals(); }
     }
 
@@ -1139,7 +1098,6 @@
 
       currentRole = await detectRole(user);
 
-      // first email user => init docs
       if(!user.isAnonymous && currentRole === "admin"){
         await ensureAdminInitDocs(user);
         currentRole = await detectRole(user);
@@ -1147,10 +1105,17 @@
 
       applyRoleToUI();
       await initSystem();
+
+      const hint = document.getElementById("login-hint");
+      if(hint){
+        hint.innerText = isAdmin()
+          ? "Admin giriş aktivdir (Google)."
+          : (user.isAnonymous ? "Ofisiant giriş aktivdir." : "Bu hesab admin deyil.");
+      }
     });
 
-    // ===== EXPORTS FOR onclick =====
-    window.adminLogin = adminLogin;
+    // EXPORTS
+    window.adminGoogleLogin = adminGoogleLogin;
     window.staffLogin = staffLogin;
     window.logoutAction = logoutAction;
 
