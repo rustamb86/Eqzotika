@@ -67,6 +67,72 @@
       #print-area { position: absolute; left: 0; top: 0; width: 80mm; background: white; color: black; padding: 20px; font-family: 'Courier New', Courier, monospace; display: block !important; }
     }
     #print-area { display: none; }
+
+    /* =========================
+       TABLET / iPAD UYĞUNLAŞDIRMA (DESKTOPA TOXUNMUR)
+       ========================= */
+
+    /* iOS scrollu yumşalt */
+    .content-area,
+    .menu-grid,
+    #order-items,
+    #table-list,
+    #view-report .glass-window,
+    #view-purchase .glass-window,
+    #view-stock .glass-window,
+    #view-expense .glass-window {
+      -webkit-overflow-scrolling: touch;
+    }
+
+    @media (max-width: 1024px) {
+      .content-area{
+        overflow: auto !important;
+        height: calc(100vh - 80px);
+        padding-bottom: 24px;
+      }
+      .sidebar{
+        width: 220px;
+        padding: 22px 14px;
+      }
+      .pos-container{
+        flex-direction: column;
+        height: auto;
+      }
+      .pos-container > .glass-window{
+        width: 100% !important;
+      }
+      #table-list{
+        max-height: 220px;
+        overflow: auto;
+      }
+      .menu-grid{
+        max-height: 42vh;
+        overflow: auto;
+      }
+      #order-items{
+        max-height: 30vh;
+        overflow: auto;
+      }
+      #view-report .glass-window{
+        overflow: auto !important;
+        height: auto;
+        min-height: calc(100vh - 140px);
+      }
+      #view-report .glass-window > div[style*="overflow:auto"]{
+        max-height: 55vh;
+      }
+      #view-purchase > div[style*="grid-template-columns"]{
+        display: grid;
+        grid-template-columns: 1fr !important;
+      }
+    }
+
+    @media (max-width: 600px){
+      .header{ padding: 0 16px; }
+      .sidebar{ width: 200px; }
+      .login-card{ width: min(92vw, 380px); padding: 26px; }
+      .glass-window{ padding: 16px; }
+    }
   </style>
 </head>
 
@@ -407,7 +473,6 @@
       }
       const sSnap = await getDoc(refSettings);
       if(!sSnap.exists()){
-        // resetCode default: 1234 (sonradan admin dəyişə bilər)
         await setDoc(refSettings, { resetCode: "1234" }, { merge: true });
       }
     }
@@ -653,7 +718,6 @@
         `<div class="glass-window" style="flex:1; height:auto; padding:15px;">Maya: <b>${cst.toFixed(2)}</b></div>` +
         `<div class="glass-window" style="flex:1; height:auto; padding:15px;">Xərc: <b>${exp.toFixed(2)}</b></div>`;
 
-      // INFO modal üçün filtr aralığını saxla
       window.__repFilter = { from, to, tableFilter };
 
       const h = $("rep-history");
@@ -935,7 +999,7 @@
         order.push({ name: n, qty: 1, price: Number(inventory[n].sell||0), cost: Number(inventory[n].cost||0) });
       }
 
-      await writeTablesState(); // ✅ staff yazanda da sağda dərhal görünür
+      await writeTablesState();
     }
 
     async function updateOrderQty(encodedName, delta){
@@ -1172,18 +1236,15 @@
       if(confirmText === null) return;
       if(String(confirmText).trim().toUpperCase() !== "SIFIRLA") return alert("Təsdiq ləğv edildi.");
 
-      // ✅ FULL WIPE: inventory/purchases/sales/expenses + tables reset
       try{
         const batch = writeBatch(db);
 
-        // delete collections
         const cols = ["inventory","purchases","sales","expenses"];
         for(const c of cols){
           const snap = await getDocs(colBranch(c));
           snap.forEach(d => batch.delete(d.ref));
         }
 
-        // reset tables
         const newTables = ["Masa 1","Masa 2","Masa 3"];
         const newOrders = {};
         newTables.forEach(t => newOrders[t] = []);
@@ -1191,7 +1252,6 @@
 
         await batch.commit();
 
-        // local state
         tables = newTables;
         tableOrders = newOrders;
         activeIdx = 0;
@@ -1231,26 +1291,22 @@
     }
 
     async function loginUser(role){
-      // staff -> anonymous login
       if(role === "staff"){
         try{
           const cred = await signInAnonymously(auth);
           currentUser = cred.user;
         }catch(e){
-          // bəzən anon söndürülür, yenə də UI açılır, amma write icazəsi rules-dan asılıdır
           currentUser = auth.currentUser;
         }
         currentRole = "staff";
       }
 
-      // UI
       $("login-overlay").style.display="none";
 
       document.querySelectorAll(".admin-only").forEach(el => {
         el.style.display = (currentRole === "admin" ? "flex" : "none");
       });
 
-      // təhlükəsizlik: hər login-də POS-a qaytar
       const firstNav = document.querySelector(".nav-item");
       if(firstNav) switchTab("pos", firstNav);
 
@@ -1261,14 +1317,11 @@
       stopRealtime();
       if(clockTimer) { clearInterval(clockTimer); clockTimer = null; }
 
-      // auth signOut
       try{ await signOut(auth); }catch(e){}
 
-      // reset ui
       $("login-overlay").style.display="flex";
       cancelAdmin();
 
-      // ✅ çıxışda inputlar təmizlənsin
       $("admin-email").value = "";
       $("admin-password").value = "";
 
@@ -1333,7 +1386,7 @@
       $("page-title").innerText = titles[v] || "Keeper Pro";
     }
 
-    // AUTH STATE (optional)
+    // AUTH STATE
     onAuthStateChanged(auth, (u) => {
       currentUser = u || null;
     });
