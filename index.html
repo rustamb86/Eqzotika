@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>RK-Pro Emerald Enterprise (Real-Time + Auth)</title>
+  <title>RK-Pro Emerald Enterprise (Real-Time)</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     :root {
@@ -14,10 +14,9 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
     body { background: linear-gradient(135deg, #064e3b 0%, #020617 100%); height: 100vh; display: flex; color: var(--text-color); overflow: hidden; }
 
-    /* GİRİŞ */
+    /* GİRİŞ SİSTEMİ */
     #login-overlay { position: fixed; inset: 0; background: rgba(2, 6, 23, 0.98); z-index: 1000; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(15px); }
-    .login-card { background: var(--glass-bg); padding: 40px; border-radius: 30px; border: 1px solid var(--glass-border); text-align: center; width: 420px; }
-    .muted { opacity: .75; font-size: 12px; margin-top: 10px; line-height: 1.4; }
+    .login-card { background: var(--glass-bg); padding: 40px; border-radius: 30px; border: 1px solid var(--glass-border); text-align: center; width: 380px; }
 
     /* SIDEBAR */
     .sidebar { width: var(--sidebar-width); background: var(--glass-bg); border-right: 1px solid var(--glass-border); display: flex; flex-direction: column; padding: 30px 20px; z-index: 100; flex-shrink: 0; }
@@ -27,19 +26,16 @@
     .nav-item { padding: 14px 18px; cursor: pointer; display: flex; align-items: center; gap: 15px; font-weight: 500; font-size: 15px; color: rgba(248, 250, 252, 0.6); transition: 0.3s; border-radius: 16px; margin-bottom: 10px; }
     .nav-item.active { background: linear-gradient(135deg, var(--primary) 0%, #059669 100%); color: #fff; }
 
-    /* MAIN */
+    /* MAIN AREA */
     .main-content { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; }
     .header { height: 80px; padding: 0 40px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--glass-border); }
     .time-box { background: rgba(16, 185, 129, 0.1); padding: 10px 22px; border-radius: 14px; border: 1px solid rgba(16, 185, 129, 0.2); font-weight: 700; color: var(--primary); }
-
-    /* ⚠️ əvvəl hidden idi */
-    .content-area { padding: 20px; flex-grow: 1; overflow: auto; }
-
-    .view { display: none; height: 100%; overflow: auto; }
+    .content-area { padding: 20px; flex-grow: 1; overflow: hidden; }
+    .view { display: none; height: 100%; }
     .view.active { display: block; }
-    .glass-window { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(15px); border: 1px solid var(--glass-border); border-radius: 24px; display: flex; flex-direction: column; padding: 20px; height: 100%; min-height: 0; }
+    .glass-window { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(15px); border: 1px solid var(--glass-border); border-radius: 24px; display: flex; flex-direction: column; padding: 20px; height: 100%; }
 
-    /* POS */
+    /* POS ELEMENTS */
     .pos-container { display: flex; height: 100%; gap: 15px; }
     .table-item { background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border); border-radius: 12px; padding: 15px; text-align: center; cursor: pointer; margin-bottom: 10px; transition: 0.3s; }
     .table-item.active { border-color: var(--accent); color: var(--accent); background: rgba(251, 191, 36, 0.1); }
@@ -51,7 +47,7 @@
     .stock-tag { position: absolute; top: 5px; right: 8px; font-size: 10px; color: var(--accent); font-weight: bold; }
     .out-of-stock { opacity: 0.4; filter: grayscale(1); cursor: not-allowed; }
 
-    /* ORDER */
+    /* ORDER SECTION (+/- və Trash) */
     .order-row { display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.03); padding: 10px; border-radius: 14px; margin-bottom: 8px; border: 1px solid rgba(255,255,255,0.05); }
     .qty-controls { display: flex; align-items: center; gap: 8px; }
     .qty-btn { background: none; border: none; color: #fff; cursor: pointer; width: 22px; height: 22px; font-weight: bold; }
@@ -62,48 +58,40 @@
     .btn-action { padding: 15px; border: none; border-radius: 16px; color: #fff; font-weight: 700; cursor: pointer; width: 100%; transition: 0.2s; }
     .glass-table { width: 100%; border-collapse: collapse; }
     .glass-table th { text-align: left; padding: 12px; color: var(--accent); border-bottom: 2px solid var(--glass-border); }
-    .glass-table td { padding: 12px; border-bottom: 1px solid var(--glass-border); }
+    .glass-table td { padding: 12px; border-bottom: 1px solid var(--glass-border); vertical-align: top; }
 
-    /* PRINT */
+    /* ÇEK ÇAPI ÜÇÜN STİL */
     @media print {
       body * { visibility: hidden; }
       #print-area, #print-area * { visibility: visible; }
       #print-area { position: absolute; left: 0; top: 0; width: 80mm; background: white; color: black; padding: 20px; font-family: 'Courier New', Courier, monospace; display: block !important; }
     }
     #print-area { display: none; }
-
-    /* ✅ A VARİANTI əlavə stabil davranış */
-    #view-report { overflow: auto; }
-    #view-report .glass-window { overflow: auto; }
   </style>
 </head>
 
 <body>
-  <!-- LOGIN -->
   <div id="login-overlay">
     <div class="login-card">
       <i class="fa-solid fa-gem" style="font-size: 40px; color: var(--accent); margin-bottom: 20px;"></i>
-      <h2 style="margin-bottom: 18px;">Sistemə Giriş</h2>
+      <h2 style="margin-bottom: 25px;">Sistemə Giriş</h2>
 
-      <!-- ADMIN -->
-      <div style="text-align:left; margin-bottom:14px; font-weight:800; color:var(--accent);">ADMIN (Email/Parol)</div>
-      <input type="email" id="admin-email" class="glass-input" placeholder="admin@eqzotika.local" value="admin@eqzotika.local">
-      <input type="password" id="admin-pass" class="glass-input" placeholder="Admin parolu">
-      <button class="btn-action" style="background:var(--primary); margin-bottom:16px;" onclick="loginAdminEmail()">
-        <i class="fa-solid fa-user-shield"></i> ADMIN DAXİL OL
-      </button>
+      <!-- ADMIN EMAIL/PASS -->
+      <div id="admin-pass-container" style="display:none;">
+        <input type="text" id="admin-email" class="glass-input" placeholder="Admin Email (məs: admin@eqzotika.local)">
+        <input type="password" id="admin-password" class="glass-input" placeholder="Admin Parolu">
+        <button class="btn-action" style="background:var(--primary)" onclick="tryAdminLogin()">DAXİL OL</button>
+        <button onclick="cancelAdmin()" style="background:none; border:none; color:white; margin-top:10px; cursor:pointer">Geri qayıt</button>
+      </div>
 
       <!-- STAFF -->
-      <div style="text-align:left; margin: 8px 0 14px; font-weight:800; color:var(--accent);">OFİSİANT</div>
-      <button class="btn-action" style="background: rgba(255,255,255,0.1);" onclick="loginStaffAnon()">
-        <i class="fa-solid fa-user"></i> OFİSİANT GİRİŞİ
-      </button>
-
-      <div id="login-msg" class="muted"></div>
+      <div id="role-btns">
+        <button class="btn-action" style="background: var(--primary); margin-bottom: 12px;" onclick="promptAdmin()">ADMIN GİRİŞİ</button>
+        <button class="btn-action" style="background: rgba(255,255,255,0.1);" onclick="loginUser('staff')">OFİSİANT GİRİŞİ</button>
+      </div>
     </div>
   </div>
 
-  <!-- SIDEBAR -->
   <aside class="sidebar">
     <div class="logo-area">
       <i class="fa-solid fa-gem" style="color:var(--accent)"></i>
@@ -111,11 +99,11 @@
     </div>
 
     <ul class="nav-list">
-      <li class="nav-item active" id="nav-pos" onclick="switchTab('pos', this)"><i class="fa-solid fa-cash-register"></i> Satış (Kassa)</li>
-      <li class="nav-item admin-only" id="nav-purchase" onclick="switchTab('purchase', this)"><i class="fa-solid fa-truck-ramp-box"></i> Alış (İdxal)</li>
-      <li class="nav-item admin-only" id="nav-stock" onclick="switchTab('stock', this)"><i class="fa-solid fa-boxes-stacked"></i> Stok (Anbar)</li>
-      <li class="nav-item admin-only" id="nav-expense" onclick="switchTab('expense', this)"><i class="fa-solid fa-file-invoice-dollar"></i> Xərclər</li>
-      <li class="nav-item admin-only" id="nav-report" onclick="switchTab('report', this)"><i class="fa-solid fa-chart-line"></i> Hesabatlar</li>
+      <li class="nav-item active" onclick="switchTab('pos', this)"><i class="fa-solid fa-cash-register"></i> Satış (Kassa)</li>
+      <li class="nav-item admin-only" onclick="switchTab('purchase', this)"><i class="fa-solid fa-truck-ramp-box"></i> Alış (İdxal)</li>
+      <li class="nav-item admin-only" onclick="switchTab('stock', this)"><i class="fa-solid fa-boxes-stacked"></i> Stok (Anbar)</li>
+      <li class="nav-item admin-only" onclick="switchTab('expense', this)"><i class="fa-solid fa-file-invoice-dollar"></i> Xərclər</li>
+      <li class="nav-item admin-only" onclick="switchTab('report', this)"><i class="fa-solid fa-chart-line"></i> Hesabatlar</li>
     </ul>
 
     <button class="btn-action admin-only" style="background:rgba(255,255,255,0.1); margin-top:10px;" onclick="resetDataPrompt()">
@@ -130,7 +118,6 @@
     </button>
   </aside>
 
-  <!-- MAIN -->
   <main class="main-content">
     <header class="header">
       <h2 id="page-title">Satış Terminalı</h2>
@@ -206,7 +193,7 @@
             <input type="number" id="p-min" placeholder="Minimum stok xəbərdarlığı (default: 5)" class="glass-input">
             <button class="btn-action" style="background:var(--primary)" onclick="savePurchaseAction()">ANBARA VUR</button>
           </div>
-          <div class="glass-window" style="overflow-y:auto;">
+          <div class="glass-window" style="overflow:auto;">
             <table class="glass-table">
               <thead>
                 <tr><th>Tarix</th><th>Məhsul</th><th>Sayı</th><th>Alış</th><th>Sil</th></tr>
@@ -219,7 +206,7 @@
 
       <!-- STOCK -->
       <div id="view-stock" class="view">
-        <div class="glass-window">
+        <div class="glass-window" style="overflow:auto;">
           <h3>Anbar Qalıqları</h3>
           <table class="glass-table">
             <thead><tr><th>Məhsul</th><th>Stok</th><th>Qiymət</th></tr></thead>
@@ -230,7 +217,7 @@
 
       <!-- EXPENSE -->
       <div id="view-expense" class="view">
-        <div class="glass-window">
+        <div class="glass-window" style="overflow:auto;">
           <h4>Xərc Qeydi (Kassa: <span id="cash-lbl">0.00</span> AZN)</h4>
           <input type="text" id="ex-n" class="glass-input" placeholder="Xərcin adı">
           <input type="number" id="ex-v" class="glass-input" placeholder="Məbləğ">
@@ -244,7 +231,7 @@
 
       <!-- REPORT -->
       <div id="view-report" class="view">
-        <div class="glass-window">
+        <div class="glass-window" style="overflow:hidden;">
           <h3>Maliyyə Hesabatı</h3>
 
           <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;">
@@ -271,10 +258,13 @@
             </div>
           </div>
 
-          <table class="glass-table">
-            <thead><tr><th>Tarix</th><th>Növ</th><th>Detallar</th><th>Məbləğ</th></tr></thead>
-            <tbody id="rep-history"></tbody>
-          </table>
+          <!-- ✅ REPORT TABLE SCROLL FIX -->
+          <div style="flex:1; overflow:auto; border-top:1px solid var(--glass-border); padding-top:10px;">
+            <table class="glass-table">
+              <thead><tr><th>Info</th><th>Tarix</th><th>Növ</th><th>Detallar</th><th>Məbləğ</th></tr></thead>
+              <tbody id="rep-history"></tbody>
+            </table>
+          </div>
         </div>
       </div>
     </section>
@@ -282,22 +272,33 @@
 
   <div id="print-area"></div>
 
-  <!-- REAL-TIME FIREBASE -->
+  <!-- INFO MODAL -->
+  <div id="info-modal" style="display:none; position:fixed; inset:0; z-index:2000; background:rgba(0,0,0,.55); backdrop-filter: blur(6px); align-items:center; justify-content:center;">
+    <div class="glass-window" style="width:min(720px,92vw); height:auto; max-height:85vh; overflow:auto; padding:18px;">
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px;">
+        <div style="font-weight:900; color:var(--accent); font-size:16px;">
+          <i class="fa-solid fa-circle-info"></i> Çek məlumatı
+        </div>
+        <button onclick="closeInfoModal()" class="btn-action" style="width:auto; padding:10px 14px; background:rgba(255,255,255,0.12);">
+          Bağla
+        </button>
+      </div>
+      <div id="info-content" style="line-height:1.65;"></div>
+    </div>
+  </div>
+
+  <!-- REAL-TIME FIREBASE (NO NPM) -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
     import {
       getFirestore, doc, setDoc, getDoc, deleteDoc, collection,
-      onSnapshot, query, orderBy, runTransaction
+      onSnapshot, query, orderBy, runTransaction, getDocs, writeBatch
     } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
-
     import {
-      getAuth,
-      onAuthStateChanged,
-      signInWithEmailAndPassword,
-      signInAnonymously,
-      signOut
+      getAuth, onAuthStateChanged, signInWithEmailAndPassword, signInAnonymously, signOut
     } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 
+    // ✅ SƏNİN CONFIG
     const firebaseConfig = {
       apiKey: "AIzaSyDb_Td0FYgrJLWlwI6dIY_g7RVoeAb9Tpk",
       authDomain: "eqzotika-2205f.firebaseapp.com",
@@ -307,19 +308,22 @@
       appId: "1:404077205202:web:ca913cc772ae624e74ff0b"
     };
 
+    // ==== INIT ====
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
 
+    // 🔧 Filial
     const BRANCH_ID = "main_branch";
-    const ADMIN_EMAIL = "admin@eqzotika.local";
 
+    // ==== PATH HELPERS ====
     const refBranch = (...parts) => doc(db, "branches", BRANCH_ID, ...parts);
     const colBranch = (...parts) => collection(db, "branches", BRANCH_ID, ...parts);
-
     const refTables = refBranch("meta", "tables");
-    const refPrivate = refBranch("meta", "private");
+    const refSettings = refBranch("meta", "settings");
 
+    // ==== STATE ====
+    const ADMIN_EMAIL_DEFAULT = "admin@eqzotika.local";
     let currentRole = "staff";
     let currentUser = null;
 
@@ -335,22 +339,20 @@
     let unsubscribers = [];
     let clockTimer = null;
 
+    // ==== DOM HELPERS ====
     const $ = (id) => document.getElementById(id);
 
-    const isAdmin = () => currentRole === 'admin';
+    // ==== ROLE HELPERS ====
+    const isAdmin = () => currentRole === "admin";
     const requireAdmin = () => {
       if (!isAdmin()) { alert("Bu bölmə yalnız ADMIN üçündür!"); return false; }
       return true;
     };
 
+    // ==== SAFE HELPERS ====
     const encName = (s) => encodeURIComponent(String(s));
     const decName = (s) => decodeURIComponent(String(s));
-    const safeId  = (s) => encodeURIComponent(String(s));
-
-    function setLoginMsg(msg){
-      const el = $("login-msg");
-      if(el) el.innerText = msg || "";
-    }
+    const safeId = (s) => encodeURIComponent(String(s));
 
     function todayISO(){
       const d = new Date();
@@ -395,25 +397,7 @@
       return s - e;
     }
 
-    function hideAdminUI(){
-      document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
-    }
-    function showAdminUI(){
-      document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'flex');
-    }
-
-    function goToPosDefault(){
-      document.querySelectorAll('.view').forEach(x => x.classList.remove('active'));
-      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-      $("view-pos").classList.add('active');
-      $("nav-pos").classList.add('active');
-      $("page-title").innerText = "Satış Terminalı";
-      renderTables();
-      renderOrderList();
-      recalcTotals();
-      renderMenu();
-    }
-
+    // ==== INIT DOCS ====
     async function ensureInitDocs(){
       const tSnap = await getDoc(refTables);
       if(!tSnap.exists()){
@@ -421,12 +405,14 @@
         tables.forEach(t => initOrders[t] = []);
         await setDoc(refTables, { tables, tableOrders: initOrders }, { merge: true });
       }
-      const pSnap = await getDoc(refPrivate);
-      if(!pSnap.exists()){
-        await setDoc(refPrivate, { resetCode: "0000" }, { merge: true });
+      const sSnap = await getDoc(refSettings);
+      if(!sSnap.exists()){
+        // resetCode default: 1234 (sonradan admin dəyişə bilər)
+        await setDoc(refSettings, { resetCode: "1234" }, { merge: true });
       }
     }
 
+    // ==== REALTIME LISTENERS ====
     function stopRealtime(){
       unsubscribers.forEach(fn => { try{ fn(); }catch(e){} });
       unsubscribers = [];
@@ -444,7 +430,7 @@
           });
           inventory = next;
           renderMenu();
-          if(isAdmin() && $("view-stock").classList.contains('active')) renderStock();
+          if(isAdmin() && $("view-stock").classList.contains("active")) renderStock();
         })
       );
 
@@ -469,7 +455,7 @@
       unsubscribers.push(
         onSnapshot(query(colBranch("purchases"), orderBy("id","desc")), (snap) => {
           purchases = snap.docs.map(d => d.data());
-          if(isAdmin() && $("view-purchase").classList.contains('active')) renderPurchases();
+          if(isAdmin() && $("view-purchase").classList.contains("active")) renderPurchases();
         })
       );
 
@@ -478,7 +464,7 @@
           sales = snap.docs.map(d => d.data());
           if(isAdmin()){
             renderExpenses();
-            if($("view-report").classList.contains('active')) renderReport();
+            if($("view-report").classList.contains("active")) renderReport();
           }
         })
       );
@@ -488,12 +474,13 @@
           expenses = snap.docs.map(d => d.data());
           if(isAdmin()){
             renderExpenses();
-            if($("view-report").classList.contains('active')) renderReport();
+            if($("view-report").classList.contains("active")) renderReport();
           }
         })
       );
     }
 
+    // ==== WRITES ====
     async function writeTablesState(){
       const clean = {};
       (tables||[]).forEach(t => clean[t] = Array.isArray(tableOrders[t]) ? tableOrders[t] : []);
@@ -506,13 +493,14 @@
     }
 
     async function getResetCode(){
-      const snap = await getDoc(refPrivate);
-      return (snap.exists() && snap.data().resetCode) ? String(snap.data().resetCode) : "0000";
+      const snap = await getDoc(refSettings);
+      return (snap.exists() && snap.data().resetCode) ? String(snap.data().resetCode) : "1234";
     }
     async function setResetCode(newCode){
-      await setDoc(refPrivate, { resetCode: String(newCode) }, { merge: true });
+      await setDoc(refSettings, { resetCode: String(newCode) }, { merge: true });
     }
 
+    // ==== UI RENDER ====
     function renderTables(){
       const list = $("table-list");
       if(!list) return;
@@ -521,10 +509,10 @@
         return;
       }
       list.innerHTML = tables.map((t, i) => {
-        const busy = (tableOrders[t] && tableOrders[t].length) ? 'busy' : '';
-        const active = (activeIdx===i) ? 'active' : '';
+        const busy = (tableOrders[t] && tableOrders[t].length) ? "busy" : "";
+        const active = (activeIdx===i) ? "active" : "";
         return `<div class="table-item ${active} ${busy}" onclick="selectTable(${i})">${t}</div>`;
-      }).join('');
+      }).join("");
     }
 
     function renderMenu(){
@@ -534,21 +522,20 @@
       grid.innerHTML = Object.entries(inventory).map(([n, d]) => {
         const isOut = Number(d.qty||0) <= 0;
         const min = (d.minQty==null || d.minQty==="") ? 5 : Number(d.minQty);
-        const badge = (Number(d.qty||0) <= min && Number(d.qty||0) > 0) ? '⚠' : '';
+        const badge = (Number(d.qty||0) <= min && Number(d.qty||0) > 0) ? "⚠" : "";
         return `
-          <div class="menu-item ${isOut ? 'out-of-stock' : ''}" onclick="addItemToOrder('${encName(n)}')">
+          <div class="menu-item ${isOut ? "out-of-stock" : ""}" onclick="addItemToOrder('${encName(n)}')">
             <span class="stock-tag">${Number(d.qty||0)}${badge}</span>
             ${n}
             <b>${Number(d.sell||0).toFixed(2)}</b>
           </div>
         `;
-      }).join('');
+      }).join("");
     }
 
     function renderOrderList(){
       const container = $("order-items");
-      if(!container) return;
-      container.innerHTML = '';
+      container.innerHTML = "";
 
       if(!tables.length){
         $("order-title").innerText = "MASA YOXDUR";
@@ -590,7 +577,7 @@
           <td>${Number(p.cost||0).toFixed(2)}</td>
           <td><i class="fa-solid fa-trash" style="cursor:pointer" onclick="delPur(${p.id})"></i></td>
         </tr>
-      `).join('');
+      `).join("");
     }
 
     function renderStock(){
@@ -602,7 +589,7 @@
           <td>${Number(d.qty||0)}${lowStockBadge(d)}</td>
           <td>${Number(d.sell||0).toFixed(2)}</td>
         </tr>
-      `).join('');
+      `).join("");
     }
 
     function renderExpenses(){
@@ -620,17 +607,18 @@
           <td>${Number(e.val||0).toFixed(2)}</td>
           <td><i class="fa-solid fa-trash" style="cursor:pointer" onclick="deleteExpense(${e.id})"></i></td>
         </tr>
-      `).join('');
+      `).join("");
     }
 
     function fillReportTablesDropdown(){
       const sel = $("rep-table");
       if(!sel) return;
       const curr = sel.value;
-      sel.innerHTML = `<option value="">Bütün masalar</option>` + (tables||[]).map(t => `<option value="${t}">${t}</option>`).join('');
+      sel.innerHTML = `<option value="">Bütün masalar</option>` + (tables||[]).map(t => `<option value="${t}">${t}</option>`).join("");
       sel.value = curr || "";
     }
 
+    // ==== REPORTS (INFO BUTTON + MODAL) ====
     function renderReport(){
       if(!requireAdmin()) return;
 
@@ -654,67 +642,30 @@
         .map(e => ({...e, dateISO: normalizeISO(e)}))
         .filter(e => inRange(e.dateISO));
 
-      const gross = filteredSales.reduce((a,b)=>a+(b.grandTotal ?? b.revenue ?? 0),0);
-      const cst = filteredSales.reduce((a,b)=>a+(b.cost||0),0);
-      const exp = filteredExp.reduce((a,b)=>a+(b.val||0),0);
+      const gross  = filteredSales.reduce((a,b)=>a+(b.grandTotal ?? b.revenue ?? 0),0);
+      const cst    = filteredSales.reduce((a,b)=>a+(b.cost||0),0);
+      const exp    = filteredExp.reduce((a,b)=>a+(b.val||0),0);
       const profit = gross - cst - exp;
-
-      const tableStats = {};
-      const tableItems = {};
-      filteredSales.forEach(s => {
-        const t = s.table || "N/A";
-        if(!tableStats[t]) tableStats[t] = { sum: 0, count: 0 };
-        tableStats[t].sum += (s.grandTotal ?? s.revenue ?? 0);
-        tableStats[t].count += 1;
-
-        if(!tableItems[t]) tableItems[t] = {};
-        (s.items||[]).forEach(it => {
-          const n = it.name || "Məhsul";
-          tableItems[t][n] = (tableItems[t][n] || 0) + Number(it.qty||0);
-        });
-      });
-
-      const tableDetailsHtml = Object.keys(tableStats).length
-        ? Object.entries(tableStats)
-            .sort((a,b)=> (b[1].sum - a[1].sum))
-            .map(([t, st]) => {
-              const items = tableItems[t] || {};
-              const itemsLines = Object.entries(items)
-                .sort((a,b)=> b[1] - a[1])
-                .map(([name, qty]) => `${name} x${qty}`)
-                .join(", ");
-              return `
-                <div style="margin-bottom:10px;">
-                  <div style="font-weight:800;">${t} — ${st.count} чек — ${st.sum.toFixed(2)} AZN</div>
-                  <div style="opacity:.9; line-height:1.5; margin-top:4px;">
-                    ${itemsLines ? itemsLines : "Sifariş detali yoxdur"}
-                  </div>
-                </div>
-              `;
-            })
-            .join("")
-        : "Məlumat yoxdur";
 
       $("rep-stats").innerHTML =
         `<div class="glass-window" style="flex:1; height:auto; padding:15px;">Ümumi Satış: <b>${gross.toFixed(2)}</b></div>` +
         `<div class="glass-window" style="flex:1; height:auto; padding:15px;">Xalis Mənfəət: <b>${profit.toFixed(2)}</b></div>` +
         `<div class="glass-window" style="flex:1; height:auto; padding:15px;">Maya: <b>${cst.toFixed(2)}</b></div>` +
-        `<div class="glass-window" style="flex:1; height:auto; padding:15px;">Xərc: <b>${exp.toFixed(2)}</b></div>` +
-        `<div class="glass-window" style="flex:2; height:auto; padding:15px;">
-           <div style="font-weight:800; color:var(--accent); margin-bottom:8px;">Masa üzrə sifarişlər</div>
-           ${tableDetailsHtml}
-         </div>`;
+        `<div class="glass-window" style="flex:1; height:auto; padding:15px;">Xərc: <b>${exp.toFixed(2)}</b></div>`;
+
+      // INFO modal üçün filtr aralığını saxla
+      window.__repFilter = { from, to, tableFilter };
 
       const h = $("rep-history");
       h.innerHTML = "";
 
       const all = [
-        ...filteredSales.map(x => ({...x, __type:'sale'})),
-        ...filteredExp.map(x => ({...x, __type:'exp'}))
+        ...filteredSales.map(x => ({...x, __type:"sale"})),
+        ...filteredExp.map(x => ({...x, __type:"exp"}))
       ].sort((a,b)=> (b.id||0) - (a.id||0));
 
       all.forEach(x => {
-        if(x.__type === 'sale'){
+        if(x.__type === "sale"){
           const itemsText = (x.items && x.items.length)
             ? (" | " + x.items.map(i => `${i.name} x${i.qty}`).join(", "))
             : "";
@@ -729,6 +680,11 @@
 
           h.innerHTML += `
             <tr>
+              <td>
+                <button class="btn-action" style="width:auto; padding:8px 10px; border-radius:12px; background:rgba(255,255,255,0.10);" onclick="openSaleInfo(${x.id})">
+                  <i class="fa-solid fa-circle-info"></i>
+                </button>
+              </td>
               <td>${x.date || ""}</td>
               <td style="color:#10b981">Satış</td>
               <td>${det}</td>
@@ -738,6 +694,7 @@
         } else {
           h.innerHTML += `
             <tr>
+              <td></td>
               <td>${x.date || ""}</td>
               <td style="color:#ef4444">Xərc</td>
               <td>${x.name || ""}</td>
@@ -747,6 +704,85 @@
         }
       });
     }
+
+    function closeInfoModal(){
+      const m = $("info-modal");
+      const c = $("info-content");
+      if(c) c.innerHTML = "";
+      if(m) m.style.display = "none";
+    }
+
+    function openSaleInfo(saleId){
+      if(!requireAdmin()) return;
+
+      const sale = (sales || []).find(s => Number(s.id) === Number(saleId));
+      if(!sale) return alert("Çek tapılmadı!");
+
+      const t = sale.table || "N/A";
+      const filt = window.__repFilter || {};
+      const from = filt.from || "";
+      const to   = filt.to || "";
+
+      const normalizeISO = (x) => x.dateISO || toISOFromLocalDateString(x.date) || "";
+      const inRange = (iso) => {
+        if(!iso) return true;
+        if(from && iso < from) return false;
+        if(to && iso > to) return false;
+        return true;
+      };
+
+      const tableChecksCount = (sales || [])
+        .map(s => ({...s, dateISO: normalizeISO(s)}))
+        .filter(s => s.table === t && inRange(s.dateISO))
+        .length;
+
+      const items = (sale.items || []);
+      const itemsHtml = items.length
+        ? items.map(i => `
+            <div style="display:flex; justify-content:space-between; gap:10px; padding:8px 10px; border:1px solid rgba(255,255,255,0.08); border-radius:12px; margin-bottom:8px;">
+              <div style="font-weight:700;">${i.name}</div>
+              <div style="opacity:.9;">x${Number(i.qty||0)}</div>
+              <div style="font-weight:800; color:var(--accent);">${(Number(i.price||0)*Number(i.qty||0)).toFixed(2)} AZN</div>
+            </div>
+          `).join("")
+        : `<div style="opacity:.8;">Sifariş detali yoxdur</div>`;
+
+      const who = sale.createdByRole === "admin"
+        ? `ADMIN (${sale.createdByEmail||"-"})`
+        : `OFİSİANT (${sale.createdByUid ? sale.createdByUid.slice(0,6) : "-"})`;
+
+      const html = `
+        <div style="display:flex; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
+          <div class="glass-window" style="height:auto; padding:12px; flex:1;">
+            <div style="opacity:.8; font-size:12px;">Masa</div>
+            <div style="font-weight:900; font-size:18px; color:var(--accent);">${t}</div>
+            <div style="opacity:.85; margin-top:6px;">Bu aralıqda çek sayı: <b>${tableChecksCount}</b></div>
+          </div>
+          <div class="glass-window" style="height:auto; padding:12px; flex:1;">
+            <div style="opacity:.8; font-size:12px;">Tarix / Ödəniş</div>
+            <div style="font-weight:800;">${sale.date || "-"} — ${sale.payType || "Nağd"}</div>
+            <div style="opacity:.85; margin-top:6px;">Vuran: <b>${who}</b></div>
+          </div>
+          <div class="glass-window" style="height:auto; padding:12px; flex:1;">
+            <div style="opacity:.8; font-size:12px;">Cəmi</div>
+            <div style="font-weight:900; font-size:18px; color:var(--accent);">${Number(sale.grandTotal ?? sale.revenue ?? 0).toFixed(2)} AZN</div>
+            <div style="opacity:.85; margin-top:6px;">Maya: <b>${Number(sale.cost||0).toFixed(2)}</b></div>
+          </div>
+        </div>
+
+        <div style="font-weight:900; color:var(--accent); margin: 6px 0 10px;">Sifarişlər</div>
+        ${itemsHtml}
+      `;
+
+      $("info-content").innerHTML = html;
+      $("info-modal").style.display = "flex";
+    }
+
+    document.addEventListener("click", (e) => {
+      const m = $("info-modal");
+      if(!m || m.style.display === "none") return;
+      if(e.target === m) closeInfoModal();
+    });
 
     function renderZReport(){
       if(!requireAdmin()) return;
@@ -778,9 +814,9 @@
       const zHtml = `
         <div><b>Tarix:</b> ${iso}</div>
         <div style="margin-top:8px;"><b>Satış (Ümumi):</b> ${gross.toFixed(2)} AZN</div>
-        <div><b>Maya:</b> ${cost.toFixed(2)} AZN</div>
         <div><b>Endirim:</b> ${disc.toFixed(2)} AZN</div>
         <div><b>Servis:</b> ${svc.toFixed(2)} AZN</div>
+        <div><b>Maya:</b> ${cost.toFixed(2)} AZN</div>
         <div style="margin-top:8px;"><b>Ödəniş növünə görə:</b><br>${payLines}</div>
         <div style="margin-top:8px;"><b>Xərclər:</b> ${expSum.toFixed(2)} AZN</div>
         <div><b>Xalis mənfəət:</b> ${profit.toFixed(2)} AZN</div>
@@ -788,9 +824,10 @@
       `;
 
       $("z-content").innerHTML = zHtml;
-      $("z-box").style.display = 'block';
+      $("z-box").style.display = "block";
     }
 
+    // ==== POS CALC + PRINT ====
     function getCurrentSubtotal(){
       if(!tables.length) return 0;
       const tName = tables[activeIdx];
@@ -859,6 +896,7 @@
       window.print();
     }
 
+    // ==== ACTIONS ====
     async function selectTable(i){
       activeIdx = i;
       renderTables();
@@ -897,7 +935,7 @@
         order.push({ name: n, qty: 1, price: Number(inventory[n].sell||0), cost: Number(inventory[n].cost||0) });
       }
 
-      await writeTablesState();
+      await writeTablesState(); // ✅ staff yazanda da sağda dərhal görünür
     }
 
     async function updateOrderQty(encodedName, delta){
@@ -954,11 +992,11 @@
       const purObj = { id, date: new Date().toLocaleDateString(), dateISO: todayISO(), name: n, qty: q, cost: c };
       await setDoc(refBranch("purchases", String(id)), purObj, { merge: true });
 
-      $("p-name").value='';
-      $("p-qty").value='';
-      $("p-cost").value='';
-      $("p-sell").value='';
-      $("p-min").value='';
+      $("p-name").value="";
+      $("p-qty").value="";
+      $("p-cost").value="";
+      $("p-sell").value="";
+      $("p-min").value="";
 
       alert("Mal anbara vuruldu!");
       notifyLowStock();
@@ -992,6 +1030,7 @@
       }
     }
 
+    // ✅ COMPLETE ORDER: həm admin, həm staff işləsin + kim vurdu yazılsın
     async function completeOrderAction(){
       const tName = tables[activeIdx];
       const order = tableOrders[tName] || [];
@@ -1003,12 +1042,10 @@
       const saleId = Date.now();
       const saleRef = refBranch("sales", String(saleId));
 
-      const createdByRole = isAdmin() ? "admin" : "staff";
-      const createdByEmail = currentUser?.email || null;
-      const createdByUid = currentUser?.uid || null;
-
       try{
         await runTransaction(db, async (tx) => {
+
+          // 1) READ-LƏR
           const tablesSnap = await tx.get(refTables);
           if(!tablesSnap.exists()) throw new Error("Tables state tapılmadı!");
 
@@ -1020,6 +1057,7 @@
             invSnaps.push({ it, invRef, inv: invSnap.data() });
           }
 
+          // 2) HESAB
           let cst = 0;
           for(const x of invSnaps){
             const have = Number(x.inv.qty || 0);
@@ -1028,11 +1066,16 @@
             cst += Number(x.inv.cost || 0) * need;
           }
 
+          // 3) WRITE-LƏR
           for(const x of invSnaps){
             const have = Number(x.inv.qty || 0);
             const need = Number(x.it.qty || 0);
             tx.update(x.invRef, { qty: have - need });
           }
+
+          const whoRole = isAdmin() ? "admin" : "staff";
+          const whoUid = currentUser?.uid || null;
+          const whoEmail = currentUser?.email || null;
 
           const saleObj = {
             id: saleId,
@@ -1049,9 +1092,9 @@
             serviceAmt: totals.svcAmt,
             grandTotal: totals.grand,
             items: order.map(x => ({ name: x.name, qty: x.qty, price: x.price })),
-            createdByRole,
-            createdByEmail,
-            createdByUid
+            createdByRole: whoRole,
+            createdByUid: whoUid,
+            createdByEmail: whoEmail
           };
           tx.set(saleRef, saleObj, { merge: true });
 
@@ -1063,12 +1106,13 @@
           tx.set(refTables, { tables: tbl, tableOrders: ords }, { merge: true });
         });
 
-        $("disc-pct").value = '';
-        $("svc-pct").value = '';
-        $("pay-type").value = 'Nağd';
+        $("disc-pct").value = "";
+        $("svc-pct").value = "";
+        $("pay-type").value = "Nağd";
 
         alert("Sifariş tamamlandı!");
         notifyLowStock();
+
       } catch(err){
         alert(err?.message || "Xəta baş verdi!");
       }
@@ -1088,8 +1132,8 @@
       const obj = { id, date: new Date().toLocaleDateString(), dateISO: todayISO(), name: n, val: v };
       await setDoc(refBranch("expenses", String(id)), obj, { merge: true });
 
-      $("ex-n").value = '';
-      $("ex-v").value = '';
+      $("ex-n").value = "";
+      $("ex-v").value = "";
     }
 
     async function deleteExpense(id){
@@ -1128,91 +1172,130 @@
       if(confirmText === null) return;
       if(String(confirmText).trim().toUpperCase() !== "SIFIRLA") return alert("Təsdiq ləğv edildi.");
 
-      tables = ["Masa 1", "Masa 2", "Masa 3"];
-      tableOrders = {};
-      tables.forEach(t => tableOrders[t] = []);
-      activeIdx = 0;
+      // ✅ FULL WIPE: inventory/purchases/sales/expenses + tables reset
+      try{
+        const batch = writeBatch(db);
 
-      await setDoc(refTables, { tables, tableOrders }, { merge: false });
+        // delete collections
+        const cols = ["inventory","purchases","sales","expenses"];
+        for(const c of cols){
+          const snap = await getDocs(colBranch(c));
+          snap.forEach(d => batch.delete(d.ref));
+        }
 
-      alert("Sistem sıfırlandı (masalar/sifarişlər).");
-    }
+        // reset tables
+        const newTables = ["Masa 1","Masa 2","Masa 3"];
+        const newOrders = {};
+        newTables.forEach(t => newOrders[t] = []);
+        batch.set(refTables, { tables: newTables, tableOrders: newOrders }, { merge: false });
 
-    function switchTab(v, el){
-      const adminViews = ['purchase','stock','expense','report'];
-      if(adminViews.includes(v) && !isAdmin()){
-        alert("Bu bölmə yalnız ADMIN üçündür!");
-        return;
+        await batch.commit();
+
+        // local state
+        tables = newTables;
+        tableOrders = newOrders;
+        activeIdx = 0;
+
+        alert("Bütün data sıfırlandı!");
+      } catch(err){
+        alert(err?.message || "Sıfırlama zamanı xəta!");
       }
-
-      document.querySelectorAll('.view').forEach(x => x.classList.remove('active'));
-      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-      $("view-" + v).classList.add('active');
-      el.classList.add('active');
-
-      if(v==='stock') renderStock();
-      if(v==='report') renderReport();
-      if(v==='expense') renderExpenses();
-      if(v==='purchase') renderPurchases();
-      if(v==='pos') { renderMenu(); renderOrderList(); recalcTotals(); }
-
-      const titles = { pos: 'Satış Terminalı', purchase:'Alış (İdxal)', stock:'Stok (Anbar)', expense:'Xərclər', report:'Hesabatlar' };
-      $("page-title").innerText = titles[v] || 'Keeper Pro';
     }
 
-    async function loginAdminEmail(){
-      setLoginMsg("");
+    // ==== LOGIN / NAV ====
+    function promptAdmin(){
+      $("role-btns").style.display="none";
+      $("admin-pass-container").style.display="block";
+      $("admin-email").value = ADMIN_EMAIL_DEFAULT;
+      $("admin-password").value = "";
+    }
+    function cancelAdmin(){
+      $("admin-pass-container").style.display="none";
+      $("role-btns").style.display="block";
+      $("admin-password").value = "";
+    }
+
+    async function tryAdminLogin(){
       const email = $("admin-email").value.trim();
-      const pass  = $("admin-pass").value;
+      const pass = $("admin-password").value;
 
-      if(!email || !pass) return setLoginMsg("Email və parolu yaz.");
-
+      if(!email || !pass) return alert("Email və parol yaz!");
       try{
-        await signInWithEmailAndPassword(auth, email, pass);
-      } catch(e){
-        setLoginMsg(e?.message || "Giriş alınmadı.");
+        const cred = await signInWithEmailAndPassword(auth, email, pass);
+        currentUser = cred.user;
+        currentRole = "admin";
+        await loginUser("admin");
+      }catch(e){
+        alert("Parol səhvdir / giriş alınmadı!");
       }
     }
 
-    async function loginStaffAnon(){
-      setLoginMsg("");
-      try{
-        await signInAnonymously(auth);
-      } catch(e){
-        setLoginMsg(e?.message || "Ofisiant girişi alınmadı.");
+    async function loginUser(role){
+      // staff -> anonymous login
+      if(role === "staff"){
+        try{
+          const cred = await signInAnonymously(auth);
+          currentUser = cred.user;
+        }catch(e){
+          // bəzən anon söndürülür, yenə də UI açılır, amma write icazəsi rules-dan asılıdır
+          currentUser = auth.currentUser;
+        }
+        currentRole = "staff";
       }
+
+      // UI
+      $("login-overlay").style.display="none";
+
+      document.querySelectorAll(".admin-only").forEach(el => {
+        el.style.display = (currentRole === "admin" ? "flex" : "none");
+      });
+
+      // təhlükəsizlik: hər login-də POS-a qaytar
+      const firstNav = document.querySelector(".nav-item");
+      if(firstNav) switchTab("pos", firstNav);
+
+      await initSystem();
     }
 
     async function logoutAction(){
       stopRealtime();
       if(clockTimer) { clearInterval(clockTimer); clockTimer = null; }
 
-      $("admin-email").value = ADMIN_EMAIL;
-      $("admin-pass").value = "";
-      setLoginMsg("");
+      // auth signOut
+      try{ await signOut(auth); }catch(e){}
 
-      try{ await signOut(auth); } catch(e){}
+      // reset ui
+      $("login-overlay").style.display="flex";
+      cancelAdmin();
 
-      $("login-overlay").style.display = 'flex';
+      // ✅ çıxışda inputlar təmizlənsin
+      $("admin-email").value = "";
+      $("admin-password").value = "";
 
       currentRole = "staff";
-      hideAdminUI();
+      currentUser = null;
 
-      goToPosDefault();
+      document.querySelectorAll(".admin-only").forEach(el => el.style.display = "none");
+
+      const firstNav = document.querySelector(".nav-item");
+      if(firstNav) switchTab("pos", firstNav);
     }
 
-    async function initAfterLogin(){
+    async function initSystem(){
       await ensureInitDocs();
       startRealtime();
 
       const iso = todayISO();
-      if($("rep-from") && !$("rep-from").value) $("rep-from").value = iso;
-      if($("rep-to") && !$("rep-to").value) $("rep-to").value = iso;
-      if($("z-date") && !$("z-date").value) $("z-date").value = iso;
+      const repFrom = $("rep-from");
+      const repTo = $("rep-to");
+      const zDate = $("z-date");
+      if(repFrom && !repFrom.value) repFrom.value = iso;
+      if(repTo && !repTo.value) repTo.value = iso;
+      if(zDate && !zDate.value) zDate.value = iso;
 
       if(clockTimer) clearInterval(clockTimer);
       clockTimer = setInterval(() => {
-        $("clock").innerText = new Date().toLocaleTimeString('az-AZ');
+        $("clock").innerText = new Date().toLocaleTimeString("az-AZ");
       }, 1000);
 
       renderTables();
@@ -1225,34 +1308,45 @@
         renderExpenses();
         fillReportTablesDropdown();
       }
-
-      $("login-overlay").style.display = 'none';
-      goToPosDefault();
     }
 
-    onAuthStateChanged(auth, async (user) => {
-      currentUser = user;
-
-      if(!user){
-        currentRole = "staff";
-        hideAdminUI();
-        $("login-overlay").style.display = 'flex';
+    function switchTab(v, el){
+      const adminViews = ["purchase","stock","expense","report"];
+      if(adminViews.includes(v) && !isAdmin()){
+        alert("Bu bölmə yalnız ADMIN üçündür!");
         return;
       }
 
-      if(user.email && user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()){
-        currentRole = "admin";
-        showAdminUI();
-      } else {
-        currentRole = "staff";
-        hideAdminUI();
-      }
+      document.querySelectorAll(".view").forEach(x => x.classList.remove("active"));
+      document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
 
-      await initAfterLogin();
+      document.getElementById("view-" + v).classList.add("active");
+      el.classList.add("active");
+
+      if(v==="stock") renderStock();
+      if(v==="report") renderReport();
+      if(v==="expense") renderExpenses();
+      if(v==="purchase") renderPurchases();
+      if(v==="pos") { renderMenu(); renderOrderList(); recalcTotals(); }
+
+      const titles = { pos: "Satış Terminalı", purchase:"Alış (İdxal)", stock:"Stok (Anbar)", expense:"Xərclər", report:"Hesabatlar" };
+      $("page-title").innerText = titles[v] || "Keeper Pro";
+    }
+
+    // AUTH STATE (optional)
+    onAuthStateChanged(auth, (u) => {
+      currentUser = u || null;
     });
 
-    // EXPORTS
+    // ==== EXPORTS FOR onclick ====
+    window.promptAdmin = promptAdmin;
+    window.cancelAdmin = cancelAdmin;
+    window.tryAdminLogin = tryAdminLogin;
+    window.loginUser = loginUser;
+    window.logoutAction = logoutAction;
+
     window.switchTab = switchTab;
+
     window.selectTable = selectTable;
     window.addTablePrompt = addTablePrompt;
 
@@ -1277,10 +1371,8 @@
     window.resetDataPrompt = resetDataPrompt;
     window.setResetCodePrompt = setResetCodePrompt;
 
-    window.logoutAction = logoutAction;
-
-    window.loginAdminEmail = loginAdminEmail;
-    window.loginStaffAnon = loginStaffAnon;
+    window.openSaleInfo = openSaleInfo;
+    window.closeInfoModal = closeInfoModal;
   </script>
 </body>
 </html>
