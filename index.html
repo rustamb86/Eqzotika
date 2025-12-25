@@ -82,7 +82,7 @@
       </div>
       <div id="role-btns">
         <button class="btn-action" style="background: var(--primary); margin-bottom: 12px;" onclick="promptAdmin()">ADMIN GİRİŞİ</button>
-        <button class="btn-action" style="background: rgba(255,255,255,0.1);" onclick="loginUser('staff')">OFİSİANT GİRİŞİ</button>
+        <button class="btn-action" style="background: rgba(255,255,255,0.1);" onclick="loginStaff()">OFİSİANT GİRİŞİ</button>
       </div>
     </div>
   </div>
@@ -267,10 +267,20 @@
   <!-- REAL-TIME FIREBASE (NO NPM) -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+
     import {
       getFirestore, doc, setDoc, getDoc, deleteDoc, collection,
-      onSnapshot, query, orderBy, runTransaction
+      onSnapshot, query, orderBy, runTransaction,
+      getDocs, writeBatch
     } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+    import {
+      getAuth,
+      onAuthStateChanged,
+      signInAnonymously,
+      signInWithEmailAndPassword,
+      signOut
+    } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 
     // ✅ SƏNİN CONFIG
     const firebaseConfig = {
@@ -285,6 +295,10 @@
     // ==== INIT ====
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    // 🔐 Admin email UI-da görünmür (yalnız parol soruşulur)
+    const ADMIN_EMAIL = "admin@eqzotika.local";
 
     // 🔧 Filial
     const BRANCH_ID = "main_branch";
@@ -296,10 +310,11 @@
     const refTables = refBranch("meta", "tables");
     const refSettings = refBranch("meta", "settings");
 
-    // ==== APP STATE ====
-    const ADMIN_CODE = "1234";
-    let currentRole = "staff";
+    // Admin rolu (Firestore: admins/{uid} doc varsa admin sayılır)
+    const refAdmins = (uid) => doc(db, "admins", uid);
 
+    // ==== APP STATE ====
+    let currentRole = "staff";
     let inventory = {};
     let purchases = [];
     let sales = [];
@@ -366,6 +381,24 @@
       return s - e;
     }
 
+    function setAdminUI(role){
+      currentRole = role;
+      document.querySelectorAll('.admin-only').forEach(el => {
+        el.style.display = (role === 'admin' ? 'flex' : 'none');
+      });
+    }
+
+    async function resolveRoleFromAuth(){
+      const u = auth.currentUser;
+      if(!u) return "staff";
+      try{
+        const snap = await getDoc(refAdmins(u.uid));
+        return snap.exists() ? "admin" : "staff";
+      }catch(e){
+        return "staff";
+      }
+    }
+
     // ==== INIT DOCS ====
     async function ensureInitDocs(){
       const tSnap = await getDoc(refTables);
@@ -376,7 +409,7 @@
       }
       const sSnap = await getDoc(refSettings);
       if(!sSnap.exists()){
-        await setDoc(refSettings, { resetCode: ADMIN_CODE }, { merge: true });
+        await setDoc(refSettings, { resetCode: "1234" }, { merge: true });
       }
     }
 
@@ -462,10 +495,34 @@
 
     async function getResetCode(){
       const snap = await getDoc(refSettings);
-      return (snap.exists() && snap.data().resetCode) ? String(snap.data().resetCode) : ADMIN_CODE;
+      return (snap.exists() && snap.data().resetCode) ? String(snap.data().resetCode) : "1234";
     }
     async function setResetCode(newCode){
       await setDoc(refSettings, { resetCode: String(newCode) }, { merge: true });
+    }
+
+    // ✅ FULL WIPE üçün kolleksiya silən helper
+    async function deleteCollection(colName, chunkSize = 400){
+      const colRef = colBranch(colName);
+      const snap = await getDocs(colRef);
+      if(snap.empty) return 0;
+
+      let deleted = 0;
+      let batch = writeBatch(db);
+      let count = 0;
+
+      for (const d of snap.docs) {
+        batch.delete(d.ref);
+        deleted++;
+        count++;
+        if(count >= chunkSize){
+          await batch.commit();
+          batch = writeBatch(db);
+          count = 0;
+        }
+      }
+      if(count > 0) await batch.commit();
+      return deleted;
     }
 
     // ==== UI RENDER ====
@@ -930,7 +987,7 @@
       }
     }
 
-    // ✅ DÜZƏLDİLMİŞ COMPLETE ORDER (READS BEFORE WRITES)
+    // ✅ COMPLETE ORDER (READS BEFORE WRITES)
     async function completeOrderAction(){
       const tName = tables[activeIdx];
       const order = tableOrders[tName] || [];
@@ -945,7 +1002,7 @@
       try{
         await runTransaction(db, async (tx) => {
 
-          // 1) BÜTÜN READ-LƏR ƏVVƏL
+          // 1) READS
           const tablesSnap = await tx.get(refTables);
           if(!tablesSnap.exists()) throw new Error("Tables state tapılmadı!");
 
@@ -957,7 +1014,7 @@
             invSnaps.push({ it, invRef, inv: invSnap.data() });
           }
 
-          // 2) HESABLA (hələ write yox)
+          // 2) CALC
           let cst = 0;
           for(const x of invSnaps){
             const have = Number(x.inv.qty || 0);
@@ -966,7 +1023,7 @@
             cst += Number(x.inv.cost || 0) * need;
           }
 
-          // 3) WRITE-LƏR SONRA
+          // 3) WRITES
           for(const x of invSnaps){
             const have = Number(x.inv.qty || 0);
             const need = Number(x.it.qty || 0);
@@ -1053,6 +1110,7 @@
       alert("Reset kodu yeniləndi!");
     }
 
+    // ✅ FULL WIPE: masalar + inventory + purchases + sales + expenses hamısı silinir
     async function resetDataPrompt(){
       if(!requireAdmin()) return;
 
@@ -1065,16 +1123,35 @@
       if(confirmText === null) return;
       if(String(confirmText).trim().toUpperCase() !== "SIFIRLA") return alert("Təsdiq ləğv edildi.");
 
-      tables = ["Masa 1", "Masa 2", "Masa 3"];
-      tableOrders = {};
-      tables.forEach(t => tableOrders[t] = []);
-      activeIdx = 0;
-      await setDoc(refTables, { tables, tableOrders }, { merge: false });
+      try{
+        // 1) Masaları default-a qaytar
+        const defaultTables = ["Masa 1", "Masa 2", "Masa 3"];
+        const defaultOrders = {};
+        defaultTables.forEach(t => defaultOrders[t] = []);
+        await setDoc(refTables, { tables: defaultTables, tableOrders: defaultOrders }, { merge: false });
 
-      alert("Sistem sıfırlandı (masalar/sifarişlər). Tam data silmək üçün ayrıca ‘full wipe’ əlavə etmək olar.");
+        // 2) Kolleksiyaları sil
+        const dInv = await deleteCollection("inventory");
+        const dPur = await deleteCollection("purchases");
+        const dSal = await deleteCollection("sales");
+        const dExp = await deleteCollection("expenses");
+
+        // lokal state (UI)
+        activeIdx = 0;
+
+        alert(
+          "FULL WIPE tamamlandı!\n\n" +
+          `inventory: ${dInv}\n` +
+          `purchases: ${dPur}\n` +
+          `sales: ${dSal}\n` +
+          `expenses: ${dExp}`
+        );
+      }catch(err){
+        alert(err?.message || "Sıfırlama zamanı xəta baş verdi!");
+      }
     }
 
-    // ==== LOGIN / NAV ====
+    // ==== LOGIN / NAV (AUTH) ====
     function promptAdmin(){
       document.getElementById('role-btns').style.display='none';
       document.getElementById('admin-pass-container').style.display='block';
@@ -1083,32 +1160,36 @@
       document.getElementById('admin-pass-container').style.display='none';
       document.getElementById('role-btns').style.display='block';
     }
-    function tryAdminLogin(){
-      if(document.getElementById('admin-password').value === ADMIN_CODE) loginUser('admin');
-      else alert("Parol səhvdir!");
+
+    async function loginStaff(){
+      try{
+        await signInAnonymously(auth);
+        // onAuthStateChanged içində init olacaq
+      }catch(e){
+        alert("Ofisiant giriş xətası: " + (e?.message || e));
+      }
     }
 
-    async function loginUser(role){
-      currentRole = role;
-      document.getElementById('login-overlay').style.display='none';
-
-      document.querySelectorAll('.admin-only').forEach(el => {
-        el.style.display = (role === 'admin' ? 'flex' : 'none');
-      });
-
-      await initSystem();
+    async function tryAdminLogin(){
+      const pass = document.getElementById('admin-password').value;
+      if(!pass) return alert("Parolu yaz!");
+      try{
+        await signInWithEmailAndPassword(auth, ADMIN_EMAIL, pass);
+        // onAuthStateChanged içində rol yoxlanıb init olacaq
+      }catch(e){
+        alert("Parol səhvdir!");
+      }
     }
 
-    function logoutAction(){
+    async function logoutAction(){
+      try{ await signOut(auth); }catch(e){}
       stopRealtime();
       if(clockTimer) { clearInterval(clockTimer); clockTimer = null; }
 
       document.getElementById('login-overlay').style.display='flex';
       cancelAdmin();
       document.getElementById('admin-password').value='';
-      currentRole = 'staff';
-
-      document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
+      setAdminUI('staff');
 
       const firstNav = document.querySelector('.nav-item');
       if(firstNav) switchTab('pos', firstNav);
@@ -1135,6 +1216,7 @@
       renderMenu();
       renderOrderList();
       recalcTotals();
+
       if(isAdmin()){
         renderPurchases();
         renderExpenses();
@@ -1164,11 +1246,30 @@
       document.getElementById('page-title').innerText = titles[v] || 'Keeper Pro';
     }
 
+    // Auth dəyişəndə avtomatik rol tap və sistemi aç
+    onAuthStateChanged(auth, async (user) => {
+      if(!user){
+        // login overlay açıq qalsın
+        stopRealtime();
+        if(clockTimer) { clearInterval(clockTimer); clockTimer = null; }
+        document.getElementById('login-overlay').style.display='flex';
+        setAdminUI('staff');
+        return;
+      }
+
+      // rol yoxla
+      const role = await resolveRoleFromAuth();
+      setAdminUI(role);
+
+      document.getElementById('login-overlay').style.display='none';
+      await initSystem();
+    });
+
     // ==== EXPORTS FOR onclick ====
     window.promptAdmin = promptAdmin;
     window.cancelAdmin = cancelAdmin;
     window.tryAdminLogin = tryAdminLogin;
-    window.loginUser = loginUser;
+    window.loginStaff = loginStaff;
     window.logoutAction = logoutAction;
 
     window.switchTab = switchTab;
