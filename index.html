@@ -71,7 +71,6 @@
       <i class="fa-solid fa-gem" style="font-size: 40px; color: var(--accent); margin-bottom: 20px;"></i>
       <h2 style="margin-bottom: 18px;">Sistemə Giriş</h2>
 
-      <!-- ADMIN EMAIL/PASS -->
       <div style="text-align:left; margin-bottom:10px; font-weight:800; color:var(--accent);">ADMIN</div>
       <input id="admin-email" class="glass-input" type="email" placeholder="Admin email" value="admin@eqzotika.local" autocomplete="username">
       <input id="admin-pass" class="glass-input" type="password" placeholder="Admin parol" autocomplete="current-password">
@@ -81,7 +80,6 @@
 
       <div style="height:1px; background: rgba(255,255,255,0.12); margin: 12px 0;"></div>
 
-      <!-- STAFF -->
       <button class="btn-action" style="background: rgba(255,255,255,0.1);" onclick="staffLogin()">
         <i class="fa-solid fa-user"></i> OFİSİANT GİRİŞİ
       </button>
@@ -276,7 +274,6 @@
       getAuth, signInWithEmailAndPassword, signInAnonymously, signOut, onAuthStateChanged
     } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 
-    // ✅ SƏNİN CONFIG
     const firebaseConfig = {
       apiKey: "AIzaSyDb_Td0FYgrJLWlwI6dIY_g7RVoeAb9Tpk",
       authDomain: "eqzotika-2205f.firebaseapp.com",
@@ -290,7 +287,6 @@
     const db = getFirestore(app);
     const auth = getAuth(app);
 
-    // ✅ ADMIN EMAIL (SƏNİN DEDİYİN)
     const ADMIN_EMAIL = "admin@eqzotika.local";
 
     const BRANCH_ID = "main_branch";
@@ -298,7 +294,7 @@
     const colBranch = (...parts) => collection(db, "branches", BRANCH_ID, ...parts);
 
     const refTables  = refBranch("meta", "tables");
-    const refPrivate = refBranch("meta", "private");  // resetCode burada
+    const refPrivate = refBranch("meta", "private");
 
     let currentRole = "staff";
 
@@ -347,6 +343,19 @@
       document.querySelectorAll(".admin-only").forEach(el => {
         el.style.display = (isAdmin() ? "" : "none");
       });
+    }
+
+    function forceOpenPOS(){
+      document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+      const posView = document.getElementById("view-pos");
+      if(posView) posView.classList.add("active");
+
+      document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
+      const posNav = document.querySelector(".nav-item");
+      if(posNav) posNav.classList.add("active");
+
+      const title = document.getElementById("page-title");
+      if(title) title.innerText = "Satış Terminalı";
     }
 
     async function ensureInitDocs(){
@@ -547,6 +556,7 @@
       sel.value = curr || "";
     }
 
+    // ===== REPORTS =====
     function renderReport(){
       if(!requireAdmin()) return;
 
@@ -571,12 +581,14 @@
         .filter(e => inRange(e.dateISO));
 
       const gross = filteredSales.reduce((a,b)=>a+(b.grandTotal ?? b.revenue ?? 0),0);
-      const cst = filteredSales.reduce((a,b)=>a+(b.cost||0),0);
-      const exp = filteredExp.reduce((a,b)=>a+(b.val||0),0);
+      const cst = filteredSales.reduce((a,b)=>a+(b.cost||0),0);     // ✅ MAYA
+      const exp = filteredExp.reduce((a,b)=>a+(b.val||0),0);        // ✅ XƏRC
       const profit = gross - cst - exp;
 
       document.getElementById("rep-stats").innerHTML =
         `<div class="glass-window" style="flex:1; height:auto; padding:15px;">Ümumi Satış: <b>${gross.toFixed(2)}</b></div>` +
+        `<div class="glass-window" style="flex:1; height:auto; padding:15px;">Maya: <b>${cst.toFixed(2)}</b></div>` +
+        `<div class="glass-window" style="flex:1; height:auto; padding:15px;">Xərc: <b>${exp.toFixed(2)}</b></div>` +
         `<div class="glass-window" style="flex:1; height:auto; padding:15px;">Xalis Mənfəət: <b>${profit.toFixed(2)}</b></div>`;
 
       const h = document.getElementById("rep-history");
@@ -642,6 +654,7 @@
       box.innerHTML = html;
     }
 
+    // ===== POS =====
     function getCurrentSubtotal(){
       if(!tables.length) return 0;
       const tName = tables[activeIdx];
@@ -683,6 +696,7 @@
       window.print();
     }
 
+    // ===== ACTIONS =====
     async function selectTable(i){
       activeIdx = i;
       renderTables();
@@ -826,13 +840,12 @@
           const tablesSnap = await tx.get(refTables);
           if(!tablesSnap.exists()) throw new Error("Tables state tapılmadı!");
 
-          // Staff da satış yazsın — stok admin düşürəcək
           tx.set(saleRef, {
             id: saleId,
             date: new Date().toLocaleDateString(),
             dateISO: todayISO(),
             revenue: totals.sub,
-            cost: 0,
+            cost: 0, // maya admin stokdan hesablamaq istəsə, ayrıca funksiya edərik
             details: tName + " Satışı",
             table: tName,
             payType,
@@ -961,10 +974,10 @@
       if(clockTimer){ clearInterval(clockTimer); clockTimer = null; }
       try{ await signOut(auth); }catch(e){}
 
-      // ✅ çıxışda xanaları təmizlə
       document.getElementById("admin-pass").value = "";
-      // email qalmasın istəyirsənsə bu sətiri də aç:
-      // document.getElementById("admin-email").value = "";
+
+      // ✅ çıxışda həmişə POS göstər
+      forceOpenPOS();
 
       document.getElementById("login-overlay").style.display = "flex";
     }
@@ -1033,7 +1046,6 @@
 
       document.getElementById("login-overlay").style.display = "none";
 
-      // ✅ admin yalnız bu email-lə
       if(!user.isAnonymous && String(user.email || "").toLowerCase() === ADMIN_EMAIL.toLowerCase()){
         currentRole = "admin";
       } else {
@@ -1042,6 +1054,9 @@
 
       applyRoleToUI();
       await initSystem();
+
+      // ✅ staff girəndə həmişə POS
+      if(currentRole === "staff") forceOpenPOS();
 
       const hint = document.getElementById("login-hint");
       hint.innerText = isAdmin()
@@ -1053,6 +1068,7 @@
     window.adminEmailLogin = adminEmailLogin;
     window.staffLogin = staffLogin;
     window.logoutAction = logoutAction;
+
     window.switchTab = switchTab;
 
     window.selectTable = selectTable;
