@@ -5,67 +5,92 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>RK-Pro Emerald Enterprise (Real-Time)</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
   <style>
-    :root { --primary:#10b981; --accent:#fbbf24; --glass-bg:rgba(255,255,255,.08); --glass-border:rgba(255,255,255,.12); --text-color:#f8fafc; --sidebar-width:260px; --danger:#ef4444;}
-    *{box-sizing:border-box;margin:0;padding:0;font-family:'Plus Jakarta Sans',sans-serif;}
-    body{background:linear-gradient(135deg,#064e3b 0%,#020617 100%);height:100vh;display:flex;color:var(--text-color);overflow:hidden;}
-    #login-overlay{position:fixed;inset:0;background:rgba(2,6,23,.98);z-index:1000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(15px);}
-    .login-card{background:var(--glass-bg);padding:40px;border-radius:30px;border:1px solid var(--glass-border);text-align:center;width:380px;}
-    .sidebar{width:var(--sidebar-width);background:var(--glass-bg);border-right:1px solid var(--glass-border);display:flex;flex-direction:column;padding:30px 20px;z-index:100;flex-shrink:0;}
-    .logo-area{display:flex;align-items:center;gap:15px;margin-bottom:50px;}
-    .logo-text{font-size:22px;font-weight:800;color:#fff;}
-    .nav-list{list-style:none;flex-grow:1;}
-    .nav-item{padding:14px 18px;cursor:pointer;display:flex;align-items:center;gap:15px;font-weight:500;font-size:15px;color:rgba(248,250,252,.6);transition:.3s;border-radius:16px;margin-bottom:10px;}
-    .nav-item.active{background:linear-gradient(135deg,var(--primary) 0%,#059669 100%);color:#fff;}
-    .main-content{flex-grow:1;display:flex;flex-direction:column;overflow:hidden;}
-    .header{height:80px;padding:0 40px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--glass-border);}
-    .time-box{background:rgba(16,185,129,.1);padding:10px 22px;border-radius:14px;border:1px solid rgba(16,185,129,.2);font-weight:700;color:var(--primary);}
-    .content-area{padding:20px;flex-grow:1;overflow:hidden;}
-    .view{display:none;height:100%;}
-    .view.active{display:block;}
-    .glass-window{background:rgba(255,255,255,.03);backdrop-filter:blur(15px);border:1px solid var(--glass-border);border-radius:24px;display:flex;flex-direction:column;padding:20px;height:100%;}
-    .pos-container{display:flex;height:100%;gap:15px;}
-    .table-item{background:rgba(255,255,255,.05);border:1px solid var(--glass-border);border-radius:12px;padding:15px;text-align:center;cursor:pointer;margin-bottom:10px;transition:.3s;}
-    .table-item.active{border-color:var(--accent);color:var(--accent);background:rgba(251,191,36,.1);}
-    .table-item.busy{border-color:var(--danger);background:rgba(239,68,68,.2);}
-    .menu-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;overflow-y:auto;}
-    .menu-item{background:rgba(255,255,255,.05);border:1px solid var(--glass-border);border-radius:18px;padding:15px;text-align:center;cursor:pointer;position:relative;}
-    .menu-item b{display:block;color:var(--primary);margin-top:5px;}
-    .stock-tag{position:absolute;top:5px;right:8px;font-size:10px;color:var(--accent);font-weight:bold;}
-    .out-of-stock{opacity:.4;filter:grayscale(1);cursor:not-allowed;}
-    .order-row{display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,.03);padding:10px;border-radius:14px;margin-bottom:8px;border:1px solid rgba(255,255,255,.05);}
-    .qty-controls{display:flex;align-items:center;gap:8px;}
-    .qty-btn{background:none;border:none;color:#fff;cursor:pointer;width:22px;height:22px;font-weight:bold;}
-    .trash-btn{color:var(--danger);background:none;border:none;cursor:pointer;margin-left:10px;font-size:18px;}
-    .glass-input{background:rgba(255,255,255,.05);border:1px solid var(--glass-border);padding:12px;border-radius:12px;color:white;width:100%;margin-bottom:10px;outline:none;}
-    .btn-action{padding:15px;border:none;border-radius:16px;color:#fff;font-weight:700;cursor:pointer;width:100%;transition:.2s;}
-    .glass-table{width:100%;border-collapse:collapse;}
-    .glass-table th{text-align:left;padding:12px;color:var(--accent);border-bottom:2px solid var(--glass-border);}
-    .glass-table td{padding:12px;border-bottom:1px solid var(--glass-border);}
-    @media print{ body *{visibility:hidden;} #print-area,#print-area *{visibility:visible;} #print-area{position:absolute;left:0;top:0;width:80mm;background:white;color:black;padding:20px;font-family:'Courier New',Courier,monospace;display:block!important;} }
-    #print-area{display:none;}
+    :root {
+      --primary: #10b981; --accent: #fbbf24; --glass-bg: rgba(255, 255, 255, 0.08);
+      --glass-border: rgba(255, 255, 255, 0.12); --text-color: #f8fafc;
+      --sidebar-width: 260px; --danger: #ef4444;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+    body { background: linear-gradient(135deg, #064e3b 0%, #020617 100%); height: 100vh; display: flex; color: var(--text-color); overflow: hidden; }
+
+    /* LOGIN */
+    #login-overlay { position: fixed; inset: 0; background: rgba(2, 6, 23, 0.98); z-index: 1000; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(15px); }
+    .login-card { background: var(--glass-bg); padding: 40px; border-radius: 30px; border: 1px solid var(--glass-border); text-align: center; width: 380px; }
+
+    /* SIDEBAR */
+    .sidebar { width: var(--sidebar-width); background: var(--glass-bg); border-right: 1px solid var(--glass-border); display: flex; flex-direction: column; padding: 30px 20px; z-index: 100; flex-shrink: 0; }
+    .logo-area { display: flex; align-items: center; gap: 15px; margin-bottom: 50px; }
+    .logo-text { font-size: 22px; font-weight: 800; color: #fff; }
+    .nav-list { list-style: none; flex-grow: 1; }
+    .nav-item { padding: 14px 18px; cursor: pointer; display: flex; align-items: center; gap: 15px; font-weight: 500; font-size: 15px; color: rgba(248, 250, 252, 0.6); transition: 0.3s; border-radius: 16px; margin-bottom: 10px; }
+    .nav-item.active { background: linear-gradient(135deg, var(--primary) 0%, #059669 100%); color: #fff; }
+
+    /* MAIN */
+    .main-content { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; }
+    .header { height: 80px; padding: 0 40px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--glass-border); }
+    .time-box { background: rgba(16, 185, 129, 0.1); padding: 10px 22px; border-radius: 14px; border: 1px solid rgba(16, 185, 129, 0.2); font-weight: 700; color: var(--primary); }
+    .content-area { padding: 20px; flex-grow: 1; overflow: hidden; }
+    .view { display: none; height: 100%; }
+    .view.active { display: block; }
+    .glass-window { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(15px); border: 1px solid var(--glass-border); border-radius: 24px; display: flex; flex-direction: column; padding: 20px; height: 100%; }
+
+    /* POS */
+    .pos-container { display: flex; height: 100%; gap: 15px; }
+    .table-item { background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border); border-radius: 12px; padding: 15px; text-align: center; cursor: pointer; margin-bottom: 10px; transition: 0.3s; }
+    .table-item.active { border-color: var(--accent); color: var(--accent); background: rgba(251, 191, 36, 0.1); }
+    .table-item.busy { border-color: var(--danger); background: rgba(239, 68, 68, 0.2); }
+
+    .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; overflow-y: auto; }
+    .menu-item { background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border); border-radius: 18px; padding: 15px; text-align: center; cursor: pointer; position: relative; }
+    .menu-item b { display: block; color: var(--primary); margin-top: 5px; }
+    .stock-tag { position: absolute; top: 5px; right: 8px; font-size: 10px; color: var(--accent); font-weight: bold; }
+    .out-of-stock { opacity: 0.4; filter: grayscale(1); cursor: not-allowed; }
+
+    /* ORDER */
+    .order-row { display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.03); padding: 10px; border-radius: 14px; margin-bottom: 8px; border: 1px solid rgba(255,255,255,0.05); }
+    .qty-controls { display: flex; align-items: center; gap: 8px; }
+    .qty-btn { background: none; border: none; color: #fff; cursor: pointer; width: 22px; height: 22px; font-weight: bold; }
+    .trash-btn { color: var(--danger); background: none; border: none; cursor: pointer; margin-left: 10px; font-size: 18px; }
+
+    /* INPUTS & TABLES */
+    .glass-input { background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); padding: 12px; border-radius: 12px; color: white; width: 100%; margin-bottom: 10px; outline: none; }
+    .btn-action { padding: 15px; border: none; border-radius: 16px; color: #fff; font-weight: 700; cursor: pointer; width: 100%; transition: 0.2s; }
+    .glass-table { width: 100%; border-collapse: collapse; }
+    .glass-table th { text-align: left; padding: 12px; color: var(--accent); border-bottom: 2px solid var(--glass-border); }
+    .glass-table td { padding: 12px; border-bottom: 1px solid var(--glass-border); }
+
+    /* PRINT */
+    @media print {
+      body * { visibility: hidden; }
+      #print-area, #print-area * { visibility: visible; }
+      #print-area { position: absolute; left: 0; top: 0; width: 80mm; background: white; color: black; padding: 20px; font-family: 'Courier New', Courier, monospace; display: block !important; }
+    }
+    #print-area { display: none; }
   </style>
 </head>
 
 <body>
+  <!-- LOGIN -->
   <div id="login-overlay">
     <div class="login-card">
       <i class="fa-solid fa-gem" style="font-size: 40px; color: var(--accent); margin-bottom: 20px;"></i>
       <h2 style="margin-bottom: 18px;">Sistemə Giriş</h2>
 
-      <div style="text-align:left; margin-bottom:10px; opacity:.9; font-weight:700;">ADMIN (Email/Parol)</div>
-      <input type="email" id="admin-email" class="glass-input" placeholder="Admin email">
-      <input type="password" id="admin-pass" class="glass-input" placeholder="Admin parol">
-      <button class="btn-action" style="background: var(--primary); margin-bottom: 14px;" onclick="adminEmailLogin()">DAXİL OL</button>
+      <div style="text-align:left; margin-bottom:10px; opacity:.9; font-weight:700;">ADMIN (yalnız parol)</div>
+      <input type="password" id="admin-pass" class="glass-input" placeholder="Admin parol" autocomplete="new-password">
+      <button class="btn-action" style="background: var(--primary); margin-bottom: 14px;" onclick="adminLogin()">DAXİL OL</button>
 
       <div style="height:1px; background:rgba(255,255,255,0.08); margin:14px 0;"></div>
 
-      <button class="btn-action" style="background: rgba(255,255,255,0.1);" onclick="staffAnonLogin()">OFİSİANT GİRİŞİ</button>
+      <button class="btn-action" style="background: rgba(255,255,255,0.1);" onclick="staffLogin()">OFİSİANT GİRİŞİ</button>
 
       <div id="login-hint" style="margin-top:14px; font-size:12px; opacity:.75;"></div>
     </div>
   </div>
 
+  <!-- SIDEBAR -->
   <aside class="sidebar">
     <div class="logo-area">
       <i class="fa-solid fa-gem" style="color:var(--accent)"></i>
@@ -83,6 +108,7 @@
     <button class="btn-action admin-only" style="background:rgba(255,255,255,0.1); margin-top:10px;" onclick="resetDataPrompt()">
       <i class="fa-solid fa-rotate"></i> BÜTÜN DATANI SIFIRLA (FULL WIPE)
     </button>
+
     <button class="btn-action admin-only" style="background:rgba(255,255,255,0.1); margin-top:10px;" onclick="setResetCodePrompt()">
       <i class="fa-solid fa-key"></i> RESET KODUNU DƏYİŞ
     </button>
@@ -92,6 +118,7 @@
     </button>
   </aside>
 
+  <!-- MAIN -->
   <main class="main-content">
     <header class="header">
       <h2 id="page-title">Satış Terminalı</h2>
@@ -167,6 +194,7 @@
             <input type="number" id="p-min" placeholder="Minimum stok xəbərdarlığı (default: 5)" class="glass-input">
             <button class="btn-action" style="background:var(--primary)" onclick="savePurchaseAction()">ANBARA VUR</button>
           </div>
+
           <div class="glass-window" style="overflow-y:auto;">
             <table class="glass-table">
               <thead><tr><th>Tarix</th><th>Məhsul</th><th>Sayı</th><th>Alış</th><th>Sil</th></tr></thead>
@@ -177,36 +205,59 @@
       </div>
 
       <!-- STOCK -->
-      <div id="view-stock" class="view"><div class="glass-window"><h3>Anbar Qalıqları</h3>
-        <table class="glass-table"><thead><tr><th>Məhsul</th><th>Stok</th><th>Qiymət</th></tr></thead><tbody id="stock-body"></tbody></table>
-      </div></div>
+      <div id="view-stock" class="view">
+        <div class="glass-window">
+          <h3>Anbar Qalıqları</h3>
+          <table class="glass-table">
+            <thead><tr><th>Məhsul</th><th>Stok</th><th>Qiymət</th></tr></thead>
+            <tbody id="stock-body"></tbody>
+          </table>
+        </div>
+      </div>
 
       <!-- EXPENSE -->
-      <div id="view-expense" class="view"><div class="glass-window">
-        <h4>Xərc Qeydi (Kassa: <span id="cash-lbl">0.00</span> AZN)</h4>
-        <input type="text" id="ex-n" class="glass-input" placeholder="Xərcin adı">
-        <input type="number" id="ex-v" class="glass-input" placeholder="Məbləğ">
-        <button onclick="saveExpenseAction()" class="btn-action" style="background:var(--danger)">XƏRCİ ƏLAVƏ ET</button>
-        <table class="glass-table" style="margin-top:20px;"><thead><tr><th>Tarix</th><th>Xərc</th><th>Məbləğ</th><th>Sil</th></tr></thead><tbody id="ex-history"></tbody></table>
-      </div></div>
+      <div id="view-expense" class="view">
+        <div class="glass-window">
+          <h4>Xərc Qeydi (Kassa: <span id="cash-lbl">0.00</span> AZN)</h4>
+          <input type="text" id="ex-n" class="glass-input" placeholder="Xərcin adı">
+          <input type="number" id="ex-v" class="glass-input" placeholder="Məbləğ">
+          <button onclick="saveExpenseAction()" class="btn-action" style="background:var(--danger)">XƏRCİ ƏLAVƏ ET</button>
+
+          <table class="glass-table" style="margin-top:20px;">
+            <thead><tr><th>Tarix</th><th>Xərc</th><th>Məbləğ</th><th>Sil</th></tr></thead>
+            <tbody id="ex-history"></tbody>
+          </table>
+        </div>
+      </div>
 
       <!-- REPORT -->
-      <div id="view-report" class="view"><div class="glass-window">
-        <h3>Maliyyə Hesabatı</h3>
-        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;">
-          <input type="date" id="rep-from" class="glass-input" style="width:220px; margin-bottom:0;">
-          <input type="date" id="rep-to" class="glass-input" style="width:220px; margin-bottom:0;">
-          <select id="rep-table" class="glass-input" style="width:220px; margin-bottom:0;"><option value="">Bütün masalar</option></select>
-          <button class="btn-action" style="background:rgba(255,255,255,0.1); width:220px;" onclick="renderReport()">FİLTRLƏ</button>
+      <div id="view-report" class="view">
+        <div class="glass-window">
+          <h3>Maliyyə Hesabatı</h3>
+
+          <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;">
+            <input type="date" id="rep-from" class="glass-input" style="width:220px; margin-bottom:0;">
+            <input type="date" id="rep-to" class="glass-input" style="width:220px; margin-bottom:0;">
+            <select id="rep-table" class="glass-input" style="width:220px; margin-bottom:0;">
+              <option value="">Bütün masalar</option>
+            </select>
+            <button class="btn-action" style="background:rgba(255,255,255,0.1); width:220px;" onclick="renderReport()">FİLTRLƏ</button>
+          </div>
+
+          <div id="rep-stats" style="display:flex; gap:15px; margin:20px 0; flex-wrap:wrap;"></div>
+
+          <table class="glass-table">
+            <thead><tr><th>Tarix</th><th>Növ</th><th>Detallar</th><th>Məbləğ</th></tr></thead>
+            <tbody id="rep-history"></tbody>
+          </table>
         </div>
-        <div id="rep-stats" style="display:flex; gap:15px; margin:20px 0; flex-wrap:wrap;"></div>
-        <table class="glass-table"><thead><tr><th>Tarix</th><th>Növ</th><th>Detallar</th><th>Məbləğ</th></tr></thead><tbody id="rep-history"></tbody></table>
-      </div></div>
+      </div>
     </section>
   </main>
 
   <div id="print-area"></div>
 
+  <!-- FIREBASE -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
     import {
@@ -217,6 +268,7 @@
       getAuth, signInWithEmailAndPassword, signInAnonymously, signOut, onAuthStateChanged
     } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 
+    // ✅ SƏNİN CONFIG
     const firebaseConfig = {
       apiKey: "AIzaSyDb_Td0FYgrJLWlwI6dIY_g7RVoeAb9Tpk",
       authDomain: "eqzotika-2205f.firebaseapp.com",
@@ -226,26 +278,34 @@
       appId: "1:404077205202:web:ca913cc772ae624e74ff0b"
     };
 
+    // ⚠️ ADMIN EMAIL-i BURDA YAZ (email ekranda görünməyəcək)
+    const ADMIN_EMAIL = "ADMIN_EMAIL_BURAYA_YAZ";  // məsələn: admin@seninmekan.az
+
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
 
+    // Branch
     const BRANCH_ID = "main_branch";
+
+    // helpers
     const refBranch = (...parts) => doc(db, "branches", BRANCH_ID, ...parts);
     const colBranch = (...parts) => collection(db, "branches", BRANCH_ID, ...parts);
 
-    const refTables   = refBranch("meta", "tables");
-    const refPublic   = refBranch("meta", "public");   // adminUid burada
-    const refPrivate  = refBranch("meta", "private");  // resetCode burada
+    const refTables  = refBranch("meta", "tables");
+    const refPublic  = refBranch("meta", "public");   // adminUid burada (signed-in oxuya bilir)
+    const refPrivate = refBranch("meta", "private");  // resetCode burada (yalnız admin)
 
     let currentRole = "staff";
     let inventory = {};
     let purchases = [];
     let sales = [];
     let expenses = [];
+
     let tables = ["Masa 1", "Masa 2", "Masa 3"];
     let tableOrders = {};
     let activeIdx = 0;
+
     let unsubscribers = [];
     let clockTimer = null;
 
@@ -256,452 +316,750 @@
     const decName = (s) => decodeURIComponent(String(s));
     const safeId  = (s) => encodeURIComponent(String(s));
 
-    function todayISO(){ const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
-    function toISOFromLocalDateString(dateStr){ const t=new Date(dateStr); return isNaN(t) ? "" : t.toISOString().slice(0,10); }
-    function clampPct(v){ v=Number(v); if(isNaN(v)||v<0) return 0; if(v>100) return 100; return v; }
-    function getCashNow(){ const s=sales.reduce((a,b)=>a+(b.grandTotal??b.revenue??0),0); const e=expenses.reduce((a,b)=>a+(b.val||0),0); return s-e; }
-
-    function applyRoleToUI(){
-      document.querySelectorAll(".admin-only").forEach(el => el.style.display = (isAdmin() ? "" : "none"));
+    function todayISO(){
+      const d = new Date();
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth()+1).padStart(2,'0');
+      const dd = String(d.getDate()).padStart(2,'0');
+      return `${yyyy}-${mm}-${dd}`;
+    }
+    function toISOFromLocalDateString(dateStr){
+      const t = new Date(dateStr);
+      return isNaN(t) ? "" : t.toISOString().slice(0,10);
+    }
+    function clampPct(v){
+      v = Number(v);
+      if(isNaN(v) || v < 0) return 0;
+      if(v > 100) return 100;
+      return v;
+    }
+    function getCashNow(){
+      const s = sales.reduce((a,b)=>a+(b.grandTotal ?? b.revenue ?? 0),0);
+      const e = expenses.reduce((a,b)=>a+(b.val||0),0);
+      return s - e;
     }
 
+    function applyRoleToUI(){
+      document.querySelectorAll(".admin-only").forEach(el => {
+        el.style.display = (isAdmin() ? "" : "none");
+      });
+    }
+
+    // ===== INIT ADMIN DOCS (FIRST TIME ADMIN) =====
     async function ensureAdminInitDocs(user){
-      // 1) public adminUid yoxdur -> create et
       const pubSnap = await getDoc(refPublic);
       if(!pubSnap.exists()){
         await setDoc(refPublic, { adminUid: user.uid }, { merge: false });
       }
 
-      // 2) private resetCode yoxdursa -> create et (default 1234)
       const prvSnap = await getDoc(refPrivate);
       if(!prvSnap.exists()){
         await setDoc(refPrivate, { resetCode: "1234" }, { merge: false });
       }
 
-      // 3) tables yoxdursa -> create et
       const tSnap = await getDoc(refTables);
       if(!tSnap.exists()){
         const initTables = ["Masa 1","Masa 2","Masa 3"];
         const initOrders = {};
         initTables.forEach(t => initOrders[t]=[]);
-        await setDoc(refTables, { tables:initTables, tableOrders:initOrders }, { merge:false });
+        await setDoc(refTables, { tables: initTables, tableOrders: initOrders }, { merge: false });
       }
     }
 
     async function detectRole(user){
       if(user.isAnonymous) return "staff";
-      // public doc hamıya oxunur -> adminUid-i burdan görürük
+
       const pubSnap = await getDoc(refPublic);
-      if(!pubSnap.exists()) return "admin"; // ilk dəfə email user gəlirsə admin olsun və init edək
+      if(!pubSnap.exists()) return "admin"; // ilk email/parol girən admin init edəcək
+
       const adminUid = pubSnap.data()?.adminUid;
       return (adminUid && adminUid === user.uid) ? "admin" : "staff";
     }
 
-    function stopRealtime(){ unsubscribers.forEach(fn=>{try{fn()}catch(e){}}); unsubscribers=[]; }
+    // ===== REALTIME =====
+    function stopRealtime(){
+      unsubscribers.forEach(fn => { try{ fn(); }catch(e){} });
+      unsubscribers = [];
+    }
 
     function startRealtime(){
       stopRealtime();
 
-      unsubscribers.push(onSnapshot(colBranch("inventory"), (snap)=>{
-        const next={}; snap.forEach(d=>{ const v=d.data()||{}; if(v.name) next[v.name]=v; });
-        inventory=next; renderMenu();
-        if(isAdmin() && document.getElementById("view-stock").classList.contains("active")) renderStock();
-      }));
+      unsubscribers.push(
+        onSnapshot(colBranch("inventory"), (snap) => {
+          const next = {};
+          snap.forEach(d => {
+            const v = d.data() || {};
+            if(v.name) next[v.name] = v;
+          });
+          inventory = next;
+          renderMenu();
+          if(isAdmin() && document.getElementById("view-stock").classList.contains("active")) renderStock();
+        })
+      );
 
-      unsubscribers.push(onSnapshot(refTables, (snap)=>{
-        if(!snap.exists()) return;
-        const d=snap.data()||{};
-        tables = Array.isArray(d.tables)&&d.tables.length ? d.tables : tables;
-        tableOrders = d.tableOrders || {};
-        tables.forEach(t=>{ if(!Array.isArray(tableOrders[t])) tableOrders[t]=[]; });
-        if(activeIdx<0||activeIdx>=tables.length) activeIdx=0;
-        renderTables(); renderOrderList(); recalcTotals(); fillReportTablesDropdown();
-      }));
+      unsubscribers.push(
+        onSnapshot(refTables, (snap) => {
+          if(!snap.exists()) return;
+          const d = snap.data() || {};
+          tables = Array.isArray(d.tables) && d.tables.length ? d.tables : tables;
+          tableOrders = d.tableOrders || {};
+          tables.forEach(t => { if(!Array.isArray(tableOrders[t])) tableOrders[t] = []; });
 
-      unsubscribers.push(onSnapshot(query(colBranch("purchases"), orderBy("id","desc")), (snap)=>{
-        purchases=snap.docs.map(d=>d.data());
-        if(isAdmin() && document.getElementById("view-purchase").classList.contains("active")) renderPurchases();
-      }, ()=>{}));
+          if(activeIdx < 0 || activeIdx >= tables.length) activeIdx = 0;
 
-      unsubscribers.push(onSnapshot(query(colBranch("sales"), orderBy("id","desc")), (snap)=>{
-        sales=snap.docs.map(d=>d.data());
-        if(isAdmin()){
-          renderExpenses();
-          if(document.getElementById("view-report").classList.contains("active")) renderReport();
-        }
-      }, ()=>{}));
+          renderTables();
+          renderOrderList();
+          recalcTotals();
+          fillReportTablesDropdown();
+        })
+      );
 
-      unsubscribers.push(onSnapshot(query(colBranch("expenses"), orderBy("id","desc")), (snap)=>{
-        expenses=snap.docs.map(d=>d.data());
-        if(isAdmin()){
-          renderExpenses();
-          if(document.getElementById("view-report").classList.contains("active")) renderReport();
-        }
-      }, ()=>{}));
+      // admin-only streams
+      unsubscribers.push(
+        onSnapshot(query(colBranch("purchases"), orderBy("id","desc")), (snap) => {
+          purchases = snap.docs.map(d => d.data());
+          if(isAdmin() && document.getElementById("view-purchase").classList.contains("active")) renderPurchases();
+        }, ()=>{})
+      );
+
+      unsubscribers.push(
+        onSnapshot(query(colBranch("sales"), orderBy("id","desc")), (snap) => {
+          sales = snap.docs.map(d => d.data());
+          if(isAdmin() && document.getElementById("view-report").classList.contains("active")) renderReport();
+          if(isAdmin()) renderExpenses();
+        }, ()=>{})
+      );
+
+      unsubscribers.push(
+        onSnapshot(query(colBranch("expenses"), orderBy("id","desc")), (snap) => {
+          expenses = snap.docs.map(d => d.data());
+          if(isAdmin() && document.getElementById("view-report").classList.contains("active")) renderReport();
+          if(isAdmin()) renderExpenses();
+        }, ()=>{})
+      );
     }
 
+    // ===== WRITES =====
     async function writeTablesState(){
-      const clean={}; (tables||[]).forEach(t=>clean[t]=Array.isArray(tableOrders[t])?tableOrders[t]:[]);
-      await setDoc(refTables,{tables,tableOrders:clean},{merge:true});
+      const clean = {};
+      (tables||[]).forEach(t => clean[t] = Array.isArray(tableOrders[t]) ? tableOrders[t] : []);
+      await setDoc(refTables, { tables, tableOrders: clean }, { merge: true });
     }
-    async function upsertInventoryItem(name,data){
-      await setDoc(refBranch("inventory", safeId(name)), { ...data, name }, { merge:true });
+
+    async function upsertInventoryItem(name, data){
+      await setDoc(refBranch("inventory", safeId(name)), { ...data, name }, { merge: true });
     }
+
     async function getResetCode(){
-      const s=await getDoc(refPrivate);
-      return (s.exists() && s.data().resetCode) ? String(s.data().resetCode) : "1234";
+      const snap = await getDoc(refPrivate);
+      return (snap.exists() && snap.data().resetCode) ? String(snap.data().resetCode) : "1234";
     }
     async function setResetCode(newCode){
-      await setDoc(refPrivate,{resetCode:String(newCode)},{merge:true});
+      await setDoc(refPrivate, { resetCode: String(newCode) }, { merge: true });
     }
 
-    // ==== RENDER ====
+    // ===== UI RENDER =====
     function renderTables(){
-      const list=document.getElementById("table-list"); if(!list) return;
-      list.innerHTML=(tables||[]).map((t,i)=>{
-        const busy=(tableOrders[t]&&tableOrders[t].length)?'busy':'';
-        const active=(activeIdx===i)?'active':'';
+      const list = document.getElementById("table-list");
+      if(!list) return;
+      list.innerHTML = (tables||[]).map((t,i) => {
+        const busy = (tableOrders[t] && tableOrders[t].length) ? "busy" : "";
+        const active = (activeIdx===i) ? "active" : "";
         return `<div class="table-item ${active} ${busy}" onclick="selectTable(${i})">${t}</div>`;
       }).join("") || `<div style="opacity:.7; padding:10px;">Masa yoxdur</div>`;
     }
+
     function renderMenu(){
-      const grid=document.getElementById("menu-grid"); if(!grid) return;
-      const entries=Object.entries(inventory);
-      if(!entries.length){ grid.innerHTML=`<div style="opacity:.7; padding:10px;">Menyu boşdur (admin stok əlavə etməlidir)</div>`; return; }
-      grid.innerHTML=entries.map(([n,d])=>{
-        const isOut=Number(d.qty||0)<=0;
-        return `<div class="menu-item ${isOut?'out-of-stock':''}" onclick="addItemToOrder('${encName(n)}')">
-          <span class="stock-tag">${Number(d.qty||0)}</span>${n}<b>${Number(d.sell||0).toFixed(2)}</b></div>`;
+      const grid = document.getElementById("menu-grid");
+      if(!grid) return;
+      const entries = Object.entries(inventory);
+      if(!entries.length){
+        grid.innerHTML = `<div style="opacity:.7; padding:10px;">Menyu boşdur (admin stok əlavə etməlidir)</div>`;
+        return;
+      }
+      grid.innerHTML = entries.map(([n,d]) => {
+        const isOut = Number(d.qty||0) <= 0;
+        return `
+          <div class="menu-item ${isOut ? "out-of-stock" : ""}" onclick="addItemToOrder('${encName(n)}')">
+            <span class="stock-tag">${Number(d.qty||0)}</span>
+            ${n}
+            <b>${Number(d.sell||0).toFixed(2)}</b>
+          </div>
+        `;
       }).join("");
     }
+
     function renderOrderList(){
-      const container=document.getElementById("order-items"); container.innerHTML="";
-      if(!tables.length){ document.getElementById("order-title").innerText="MASA YOXDUR"; return; }
-      const tName=tables[activeIdx]; const list=tableOrders[tName]||[];
-      list.forEach(i=>{
-        container.innerHTML += `<div class="order-row">
-          <span>${i.name}</span>
-          <div class="qty-controls">
-            <button class="qty-btn" onclick="updateOrderQty('${encName(i.name)}',-1)">-</button>
-            <span>${i.qty}</span>
-            <button class="qty-btn" onclick="updateOrderQty('${encName(i.name)}',1)">+</button>
+      const container = document.getElementById("order-items");
+      container.innerHTML = "";
+      if(!tables.length){
+        document.getElementById("order-title").innerText = "MASA YOXDUR";
+        return;
+      }
+      const tName = tables[activeIdx];
+      const list = tableOrders[tName] || [];
+      list.forEach(i => {
+        container.innerHTML += `
+          <div class="order-row">
+            <span>${i.name}</span>
+            <div class="qty-controls">
+              <button class="qty-btn" onclick="updateOrderQty('${encName(i.name)}',-1)">-</button>
+              <span>${i.qty}</span>
+              <button class="qty-btn" onclick="updateOrderQty('${encName(i.name)}',1)">+</button>
+            </div>
+            <b>${(Number(i.price||0)*Number(i.qty||0)).toFixed(2)}</b>
+            <button class="trash-btn" onclick="removeOrderItem('${encName(i.name)}')"><i class="fa-solid fa-trash"></i></button>
           </div>
-          <b>${(Number(i.price||0)*Number(i.qty||0)).toFixed(2)}</b>
-          <button class="trash-btn" onclick="removeOrderItem('${encName(i.name)}')"><i class="fa-solid fa-trash"></i></button>
-        </div>`;
+        `;
       });
-      document.getElementById("order-title").innerText=tName.toUpperCase();
+      document.getElementById("order-title").innerText = tName.toUpperCase();
     }
+
     function renderPurchases(){
-      const ph=document.getElementById("pur-history"); if(!ph) return;
-      ph.innerHTML=(purchases||[]).map(p=>`<tr><td>${p.date||""}</td><td>${p.name||""}</td><td>${Number(p.qty||0)}</td><td>${Number(p.cost||0).toFixed(2)}</td>
-        <td><i class="fa-solid fa-trash" style="cursor:pointer" onclick="delPur(${p.id})"></i></td></tr>`).join("");
+      const ph = document.getElementById("pur-history");
+      if(!ph) return;
+      ph.innerHTML = (purchases||[]).map(p => `
+        <tr>
+          <td>${p.date||""}</td>
+          <td>${p.name||""}</td>
+          <td>${Number(p.qty||0)}</td>
+          <td>${Number(p.cost||0).toFixed(2)}</td>
+          <td><i class="fa-solid fa-trash" style="cursor:pointer" onclick="delPur(${p.id})"></i></td>
+        </tr>
+      `).join("");
     }
+
     function renderStock(){
-      const body=document.getElementById("stock-body"); if(!body) return;
-      body.innerHTML=Object.entries(inventory).map(([n,d])=>`<tr><td>${n}</td><td>${Number(d.qty||0)}</td><td>${Number(d.sell||0).toFixed(2)}</td></tr>`).join("");
+      const body = document.getElementById("stock-body");
+      if(!body) return;
+      body.innerHTML = Object.entries(inventory).map(([n,d]) => `
+        <tr>
+          <td>${n}</td>
+          <td>${Number(d.qty||0)}</td>
+          <td>${Number(d.sell||0).toFixed(2)}</td>
+        </tr>
+      `).join("");
     }
+
     function renderExpenses(){
-      const cashLbl=document.getElementById("cash-lbl"); if(cashLbl) cashLbl.innerText=getCashNow().toFixed(2);
-      const tbody=document.getElementById("ex-history"); if(!tbody) return;
-      tbody.innerHTML=(expenses||[]).map(e=>`<tr><td>${e.date||""}</td><td>${e.name||""}</td><td>${Number(e.val||0).toFixed(2)}</td>
-        <td><i class="fa-solid fa-trash" style="cursor:pointer" onclick="deleteExpense(${e.id})"></i></td></tr>`).join("");
+      const cashLbl = document.getElementById("cash-lbl");
+      if(cashLbl) cashLbl.innerText = getCashNow().toFixed(2);
+
+      const tbody = document.getElementById("ex-history");
+      if(!tbody) return;
+
+      tbody.innerHTML = (expenses||[]).map(e => `
+        <tr>
+          <td>${e.date||""}</td>
+          <td>${e.name||""}</td>
+          <td>${Number(e.val||0).toFixed(2)}</td>
+          <td><i class="fa-solid fa-trash" style="cursor:pointer" onclick="deleteExpense(${e.id})"></i></td>
+        </tr>
+      `).join("");
     }
+
     function fillReportTablesDropdown(){
-      const sel=document.getElementById("rep-table"); if(!sel) return;
-      const curr=sel.value;
-      sel.innerHTML=`<option value="">Bütün masalar</option>` + (tables||[]).map(t=>`<option value="${t}">${t}</option>`).join("");
-      sel.value=curr||"";
+      const sel = document.getElementById("rep-table");
+      if(!sel) return;
+      const curr = sel.value;
+      sel.innerHTML = `<option value="">Bütün masalar</option>` + (tables||[]).map(t => `<option value="${t}">${t}</option>`).join("");
+      sel.value = curr || "";
     }
 
-    function getCurrentSubtotal(){
-      if(!tables.length) return 0;
-      const tName=tables[activeIdx];
-      const list=tableOrders[tName]||[];
-      return list.reduce((sum,i)=>sum + (Number(i.price||0)*Number(i.qty||0)),0);
-    }
-    function recalcTotals(){
-      const sub=getCurrentSubtotal();
-      const discPct=clampPct(document.getElementById("disc-pct")?.value ?? 0);
-      const svcPct =clampPct(document.getElementById("svc-pct")?.value ?? 0);
-      const discAmt=sub*(discPct/100);
-      const after=sub-discAmt;
-      const svcAmt=after*(svcPct/100);
-      const grand=after+svcAmt;
-      document.getElementById("sub-val").innerText=sub.toFixed(2);
-      document.getElementById("disc-val").innerText=discAmt.toFixed(2);
-      document.getElementById("svc-val").innerText=svcAmt.toFixed(2);
-      document.getElementById("total-val").innerText=grand.toFixed(2);
-      return {sub,discPct,discAmt,svcPct,svcAmt,grand};
-    }
-
-    function printReceiptAction(){
-      const tName=tables[activeIdx]; const ord=tableOrders[tName]||[];
-      if(!ord.length) return alert("Sifariş boşdur!");
-      const totals=recalcTotals();
-      const payType=document.getElementById("pay-type")?.value || "Nağd";
-      let html=`<div style="text-align:center"><h3>KEEPER PRO</h3><p>Masa: ${tName}</p><p>Ödəniş: ${payType}</p><hr style="border:1px dashed #000">`;
-      ord.forEach(i=> html+=`<div style="display:flex; justify-content:space-between; margin:5px 0;"><span>${i.name} (x${i.qty})</span><span>${(Number(i.price||0)*Number(i.qty||0)).toFixed(2)} AZN</span></div>`);
-      html+=`<hr style="border:1px dashed #000"><b>CƏMİ: ${totals.grand.toFixed(2)} AZN</b><br><br><p>Nuş olsun!</p></div>`;
-      document.getElementById("print-area").innerHTML=html; window.print();
-    }
-
-    // ==== ACTIONS ====
-    async function selectTable(i){ activeIdx=i; renderTables(); renderOrderList(); recalcTotals(); }
-
-    async function addTablePrompt(){
-      if(!requireAdmin()) return;
-      let n=prompt("Masa:"); if(!n) return; n=n.trim(); if(!n) return;
-      if(tables.includes(n)) return alert("Bu masa artıq var!");
-      tables.push(n); tableOrders[n]=[];
-      await setDoc(refTables,{tables,tableOrders},{merge:true});
-    }
-
-    async function addItemToOrder(encodedName){
-      const n=decName(encodedName);
-      if(!tables.length) return alert("Masa yoxdur (admin init etməlidir).");
-      if(!inventory[n] || Number(inventory[n].qty||0)<=0) return alert("Məhsul bitib!");
-      const tName=tables[activeIdx];
-      const order=tableOrders[tName] || (tableOrders[tName]=[]);
-      const ex=order.find(i=>i.name===n);
-      if(ex){ if(ex.qty+1 > Number(inventory[n].qty||0)) return alert("Stok çatışmır!"); ex.qty++; }
-      else order.push({name:n, qty:1, price:Number(inventory[n].sell||0), cost:Number(inventory[n].cost||0)});
-      await writeTablesState();
-    }
-
-    async function updateOrderQty(encodedName, delta){
-      const n=decName(encodedName);
-      const tName=tables[activeIdx];
-      const list=tableOrders[tName] || (tableOrders[tName]=[]);
-      const it=list.find(i=>i.name===n); if(!it) return;
-      if(delta>0 && it.qty+1 > Number(inventory[n]?.qty ?? 0)) return alert("Stok yoxdur!");
-      it.qty += Number(delta||0);
-      if(it.qty<=0) tableOrders[tName]=list.filter(i=>i.name!==n);
-      await writeTablesState();
-    }
-
-    async function removeOrderItem(encodedName){
-      const n=decName(encodedName);
-      const tName=tables[activeIdx];
-      tableOrders[tName]=(tableOrders[tName]||[]).filter(i=>i.name!==n);
-      await writeTablesState();
-    }
-
-    async function savePurchaseAction(){
-      if(!requireAdmin()) return;
-      const n=document.getElementById("p-name").value.trim();
-      const q=parseFloat(document.getElementById("p-qty").value);
-      const c=parseFloat(document.getElementById("p-cost").value);
-      const s=parseFloat(document.getElementById("p-sell").value);
-      const m=parseFloat(document.getElementById("p-min").value);
-
-      if(!n || isNaN(q)||q<=0) return alert("Məhsul adı/miqdar düz deyil.");
-      if(isNaN(c)||c<0) return alert("Alış qiyməti düz deyil.");
-      if(isNaN(s)||s<0) return alert("Satış qiyməti düz deyil.");
-
-      const inv=inventory[n] || {name:n, qty:0, sell:s, cost:c, minQty:5};
-      inv.qty = Number(inv.qty||0)+q; inv.sell=s; inv.cost=c; inv.minQty = isNaN(m)?(inv.minQty??5):m;
-      await upsertInventoryItem(n, inv);
-
-      const id=Date.now();
-      await setDoc(refBranch("purchases", String(id)), {id, date:new Date().toLocaleDateString(), dateISO:todayISO(), name:n, qty:q, cost:c}, {merge:true});
-      document.getElementById("p-name").value=""; document.getElementById("p-qty").value=""; document.getElementById("p-cost").value=""; document.getElementById("p-sell").value=""; document.getElementById("p-min").value="";
-      alert("Mal anbara vuruldu!");
-    }
-
-    async function delPur(id){
-      if(!requireAdmin()) return;
-      const pRef=refBranch("purchases", String(id));
-      try{
-        await runTransaction(db, async(tx)=>{
-          const pSnap=await tx.get(pRef); if(!pSnap.exists()) throw new Error("Alış tapılmadı!");
-          const p=pSnap.data();
-          const invRef=refBranch("inventory", safeId(p.name));
-          const invSnap=await tx.get(invRef); if(!invSnap.exists()) throw new Error("Stok tapılmadı!");
-          const inv=invSnap.data();
-          const newQty=Number(inv.qty||0)-Number(p.qty||0);
-          if(newQty<0) throw new Error("Silinmir: stok mənfiyə düşür.");
-          tx.update(invRef,{qty:newQty});
-          tx.delete(pRef);
-        });
-      }catch(e){ alert(e?.message||"Xəta"); }
-    }
-
-    async function completeOrderAction(){
-      const tName=tables[activeIdx]; const order=tableOrders[tName]||[];
-      if(!order.length) return alert("Sifariş boşdur!");
-      const totals=recalcTotals();
-      const payType=document.getElementById("pay-type")?.value || "Nağd";
-      const saleId=Date.now();
-      const saleRef=refBranch("sales", String(saleId));
-
-      try{
-        await runTransaction(db, async(tx)=>{
-          const tablesSnap=await tx.get(refTables);
-          if(!tablesSnap.exists()) throw new Error("Tables state tapılmadı (admin init etməlidir).");
-
-          const invSnaps=[];
-          for(const it of order){
-            const invRef=refBranch("inventory", safeId(it.name));
-            const invSnap=await tx.get(invRef);
-            if(!invSnap.exists()) throw new Error("Stok tapılmadı: "+it.name);
-            invSnaps.push({it, invRef, inv:invSnap.data()});
-          }
-
-          let cst=0;
-          for(const x of invSnaps){
-            const have=Number(x.inv.qty||0), need=Number(x.it.qty||0);
-            if(have<need) throw new Error("Stok çatmır: "+x.it.name);
-            cst += Number(x.inv.cost||0)*need;
-          }
-
-          for(const x of invSnaps){
-            tx.update(x.invRef,{qty:Number(x.inv.qty||0)-Number(x.it.qty||0)});
-          }
-
-          tx.set(saleRef,{
-            id:saleId,date:new Date().toLocaleDateString(),dateISO:todayISO(),
-            revenue:totals.sub,cost:cst,details:tName+" Satışı",table:tName,payType,
-            discountPct:totals.discPct,discountAmt:totals.discAmt,
-            servicePct:totals.svcPct,serviceAmt:totals.svcAmt,
-            grandTotal:totals.grand, items:order.map(x=>({name:x.name, qty:x.qty, price:x.price}))
-          },{merge:true});
-
-          const d=tablesSnap.data()||{};
-          const tbl=Array.isArray(d.tables)&&d.tables.length?d.tables:tables;
-          const ords=d.tableOrders||{};
-          tbl.forEach(t=>{ if(!Array.isArray(ords[t])) ords[t]=[]; });
-          ords[tName]=[];
-          tx.set(refTables,{tables:tbl, tableOrders:ords},{merge:true});
-        });
-
-        document.getElementById("disc-pct").value="";
-        document.getElementById("svc-pct").value="";
-        document.getElementById("pay-type").value="Nağd";
-        alert("Sifariş tamamlandı!");
-      }catch(e){ alert(e?.message||"Xəta"); }
-    }
-
-    async function saveExpenseAction(){
-      if(!requireAdmin()) return;
-      const n=document.getElementById("ex-n").value.trim();
-      const v=parseFloat(document.getElementById("ex-v").value);
-      const cash=getCashNow();
-      if(!n || isNaN(v) || v<=0) return alert("Düzgün daxil et!");
-      if(v>cash) return alert("Kassada yetərli məbləğ yoxdur!");
-      const id=Date.now();
-      await setDoc(refBranch("expenses", String(id)), {id,date:new Date().toLocaleDateString(),dateISO:todayISO(),name:n,val:v},{merge:true});
-      document.getElementById("ex-n").value=""; document.getElementById("ex-v").value="";
-    }
-    async function deleteExpense(id){ if(!requireAdmin()) return; await deleteDoc(refBranch("expenses", String(id))); }
-
+    // ===== REPORT =====
     function renderReport(){
       if(!requireAdmin()) return;
-      const from=document.getElementById("rep-from").value;
-      const to=document.getElementById("rep-to").value;
-      const tableFilter=document.getElementById("rep-table").value;
 
-      const normalizeISO=(x)=> x.dateISO || toISOFromLocalDateString(x.date) || "";
-      const inRange=(iso)=>{ if(!iso) return true; if(from && iso<from) return false; if(to && iso>to) return false; return true; };
+      const from = document.getElementById("rep-from").value;
+      const to = document.getElementById("rep-to").value;
+      const tableFilter = document.getElementById("rep-table").value;
 
-      const filteredSales=(sales||[]).map(s=>({...s,dateISO:normalizeISO(s)})).filter(s=>inRange(s.dateISO)&&(!tableFilter||s.table===tableFilter));
-      const filteredExp=(expenses||[]).map(e=>({...e,dateISO:normalizeISO(e)})).filter(e=>inRange(e.dateISO));
+      const normalizeISO = (x) => x.dateISO || toISOFromLocalDateString(x.date) || "";
+      const inRange = (iso) => {
+        if(!iso) return true;
+        if(from && iso < from) return false;
+        if(to && iso > to) return false;
+        return true;
+      };
 
-      const gross=filteredSales.reduce((a,b)=>a+(b.grandTotal??b.revenue??0),0);
-      const cst=filteredSales.reduce((a,b)=>a+(b.cost||0),0);
-      const exp=filteredExp.reduce((a,b)=>a+(b.val||0),0);
-      const profit=gross-cst-exp;
+      const filteredSales = (sales||[])
+        .map(s => ({...s, dateISO: normalizeISO(s)}))
+        .filter(s => inRange(s.dateISO) && (!tableFilter || s.table === tableFilter));
+
+      const filteredExp = (expenses||[])
+        .map(e => ({...e, dateISO: normalizeISO(e)}))
+        .filter(e => inRange(e.dateISO));
+
+      const gross = filteredSales.reduce((a,b)=>a+(b.grandTotal ?? b.revenue ?? 0),0);
+      const cst = filteredSales.reduce((a,b)=>a+(b.cost||0),0);
+      const exp = filteredExp.reduce((a,b)=>a+(b.val||0),0);
+      const profit = gross - cst - exp;
 
       document.getElementById("rep-stats").innerHTML =
         `<div class="glass-window" style="flex:1; height:auto; padding:15px;">Ümumi Satış: <b>${gross.toFixed(2)}</b></div>` +
         `<div class="glass-window" style="flex:1; height:auto; padding:15px;">Xalis Mənfəət: <b>${profit.toFixed(2)}</b></div>`;
 
-      const h=document.getElementById("rep-history"); h.innerHTML="";
-      const all=[...filteredSales.map(x=>({...x,__type:"sale"})), ...filteredExp.map(x=>({...x,__type:"exp"}))].sort((a,b)=>(b.id||0)-(a.id||0));
-      all.forEach(x=>{
-        if(x.__type==="sale"){
-          h.innerHTML += `<tr><td>${x.date||""}</td><td style="color:#10b981">Satış</td><td>${x.details||"Satış"} (${x.table||"-"}) | ${x.payType||"Nağd"}</td><td>${Number(x.grandTotal??x.revenue??0).toFixed(2)}</td></tr>`;
-        }else{
+      const h = document.getElementById("rep-history");
+      h.innerHTML = "";
+
+      const all = [
+        ...filteredSales.map(x => ({...x, __type:'sale'})),
+        ...filteredExp.map(x => ({...x, __type:'exp'}))
+      ].sort((a,b)=> (b.id||0) - (a.id||0));
+
+      all.forEach(x => {
+        if(x.__type === 'sale'){
+          const det = `${x.details || "Satış"} (${x.table || "-"}) | ${x.payType || "Nağd"}` + (x.pendingStock ? " | ⚠ stok düşməyib" : "");
+          h.innerHTML += `<tr><td>${x.date||""}</td><td style="color:#10b981">Satış</td><td>${det}</td><td>${Number(x.grandTotal ?? x.revenue ?? 0).toFixed(2)}</td></tr>`;
+        } else {
           h.innerHTML += `<tr><td>${x.date||""}</td><td style="color:#ef4444">Xərc</td><td>${x.name||""}</td><td>${(-Number(x.val||0)).toFixed(2)}</td></tr>`;
         }
       });
     }
 
+    // ===== POS TOTALS + PRINT =====
+    function getCurrentSubtotal(){
+      if(!tables.length) return 0;
+      const tName = tables[activeIdx];
+      const list = tableOrders[tName] || [];
+      return list.reduce((sum, i) => sum + (Number(i.price||0) * Number(i.qty||0)), 0);
+    }
+
+    function recalcTotals(){
+      const sub = getCurrentSubtotal();
+      const discPct = clampPct(document.getElementById('disc-pct')?.value ?? 0);
+      const svcPct  = clampPct(document.getElementById('svc-pct')?.value ?? 0);
+
+      const discAmt = sub * (discPct/100);
+      const afterDisc = sub - discAmt;
+      const svcAmt = afterDisc * (svcPct/100);
+      const grand = afterDisc + svcAmt;
+
+      document.getElementById('sub-val').innerText  = sub.toFixed(2);
+      document.getElementById('disc-val').innerText = discAmt.toFixed(2);
+      document.getElementById('svc-val').innerText  = svcAmt.toFixed(2);
+      document.getElementById('total-val').innerText = grand.toFixed(2);
+
+      return { sub, discPct, discAmt, svcPct, svcAmt, grand };
+    }
+
+    function printReceiptAction(){
+      const tName = tables[activeIdx];
+      const ord = tableOrders[tName] || [];
+      if(!ord.length) return alert("Sifariş boşdur!");
+
+      const totals = recalcTotals();
+      const payType = document.getElementById('pay-type')?.value || "Nağd";
+
+      let html = `<div style="text-align:center"><h3>KEEPER PRO</h3><p>Masa: ${tName}</p><p>Ödəniş: ${payType}</p><hr style="border:1px dashed #000">`;
+      ord.forEach(i => html += `<div style="display:flex; justify-content:space-between; margin:5px 0;"><span>${i.name} (x${i.qty})</span><span>${(Number(i.price||0)*Number(i.qty||0)).toFixed(2)} AZN</span></div>`);
+      html += `<hr style="border:1px dashed #000"><b>CƏMİ: ${totals.grand.toFixed(2)} AZN</b><br><br><p>Nuş olsun!</p></div>`;
+
+      document.getElementById('print-area').innerHTML = html;
+      window.print();
+    }
+
+    // ===== ACTIONS =====
+    async function selectTable(i){
+      activeIdx = i;
+      renderTables();
+      renderOrderList();
+      recalcTotals();
+    }
+
+    async function addTablePrompt(){
+      if(!requireAdmin()) return;
+      let n = prompt("Masa:");
+      if(!n) return;
+      n = n.trim();
+      if(!n) return;
+      if(tables.includes(n)) return alert("Bu masa artıq var!");
+      tables.push(n);
+      tableOrders[n] = [];
+      await writeTablesState();
+    }
+
+    async function addItemToOrder(encodedName){
+      const n = decName(encodedName);
+
+      if(!tables.length) return alert("Masa yoxdur (admin init etməlidir).");
+      if(!inventory[n] || Number(inventory[n].qty||0) <= 0) return alert("Məhsul bitib!");
+
+      const tName = tables[activeIdx];
+      const order = tableOrders[tName] || (tableOrders[tName] = []);
+      const existing = order.find(i => i.name === n);
+
+      if(existing){
+        if(existing.qty + 1 > Number(inventory[n].qty||0)) return alert("Stok çatışmır!");
+        existing.qty += 1;
+      } else {
+        order.push({ name: n, qty: 1, price: Number(inventory[n].sell||0), cost: Number(inventory[n].cost||0) });
+      }
+
+      await writeTablesState();
+    }
+
+    async function updateOrderQty(encodedName, delta){
+      const n = decName(encodedName);
+      if(!tables.length) return;
+
+      const tName = tables[activeIdx];
+      const list = tableOrders[tName] || (tableOrders[tName] = []);
+      const item = list.find(i => i.name === n);
+      if(!item) return;
+
+      if(delta > 0){
+        if(item.qty + 1 > Number(inventory[n]?.qty ?? 0)) return alert("Stok yoxdur!");
+      }
+
+      item.qty += Number(delta||0);
+      if(item.qty <= 0){
+        tableOrders[tName] = list.filter(i => i.name !== n);
+      }
+      await writeTablesState();
+    }
+
+    async function removeOrderItem(encodedName){
+      const n = decName(encodedName);
+      if(!tables.length) return;
+      const tName = tables[activeIdx];
+      tableOrders[tName] = (tableOrders[tName] || []).filter(i => i.name !== n);
+      await writeTablesState();
+    }
+
+    async function savePurchaseAction(){
+      if(!requireAdmin()) return;
+
+      const n = document.getElementById('p-name').value.trim();
+      const q = parseFloat(document.getElementById('p-qty').value);
+      const c = parseFloat(document.getElementById('p-cost').value);
+      const s = parseFloat(document.getElementById('p-sell').value);
+      const m = parseFloat(document.getElementById('p-min').value);
+
+      if(!n || isNaN(q) || q<=0) return alert("Məhsul adı və miqdar düzgün yazılmalıdır.");
+      if(isNaN(c) || c<0) return alert("Alış qiyməti düzgün yazılmalıdır.");
+      if(isNaN(s) || s<0) return alert("Satış qiyməti düzgün yazılmalıdır.");
+
+      const inv = inventory[n] || { name: n, qty: 0, sell: s, cost: c, minQty: 5 };
+      inv.qty = Number(inv.qty||0) + q;
+      inv.sell = s;
+      inv.cost = c;
+      inv.minQty = isNaN(m) ? (inv.minQty ?? 5) : m;
+
+      await upsertInventoryItem(n, inv);
+
+      const id = Date.now();
+      await setDoc(refBranch("purchases", String(id)), {
+        id, date: new Date().toLocaleDateString(), dateISO: todayISO(), name: n, qty: q, cost: c
+      }, { merge: true });
+
+      document.getElementById('p-name').value='';
+      document.getElementById('p-qty').value='';
+      document.getElementById('p-cost').value='';
+      document.getElementById('p-sell').value='';
+      document.getElementById('p-min').value='';
+
+      alert("Mal anbara vuruldu!");
+    }
+
+    async function delPur(id){
+      if(!requireAdmin()) return;
+
+      const pRef = refBranch("purchases", String(id));
+      try{
+        await runTransaction(db, async (tx) => {
+          const pSnap = await tx.get(pRef);
+          if(!pSnap.exists()) throw new Error("Alış tapılmadı!");
+          const p = pSnap.data();
+
+          const invRef = refBranch("inventory", safeId(p.name));
+          const invSnap = await tx.get(invRef);
+          if(!invSnap.exists()) throw new Error("Stok tapılmadı!");
+          const inv = invSnap.data();
+
+          const newQty = Number(inv.qty||0) - Number(p.qty||0);
+          if(newQty < 0) throw new Error("Silinmir: stok mənfiyə düşür.");
+
+          tx.update(invRef, { qty: newQty });
+          tx.delete(pRef);
+        });
+      } catch(err){
+        alert(err?.message || "Xəta baş verdi!");
+      }
+    }
+
+    // ✅ STAFF: sale + masa boşalır (stok düşmür) | ✅ ADMIN: stok da düşür
+    async function completeOrderAction(){
+      const tName = tables[activeIdx];
+      const order = tableOrders[tName] || [];
+      if(!order.length) return alert("Sifariş boşdur!");
+
+      const totals = recalcTotals();
+      const payType = document.getElementById('pay-type')?.value || "Nağd";
+
+      const saleId = Date.now();
+      const saleRef = refBranch("sales", String(saleId));
+
+      try{
+        // STAFF
+        if(!isAdmin()){
+          await runTransaction(db, async (tx) => {
+            const tablesSnap = await tx.get(refTables);
+            if(!tablesSnap.exists()) throw new Error("Tables state tapılmadı!");
+
+            const saleObj = {
+              id: saleId,
+              date: new Date().toLocaleDateString(),
+              dateISO: todayISO(),
+              revenue: totals.sub,
+              cost: 0,
+              details: tName + " Satışı",
+              table: tName,
+              payType,
+              discountPct: totals.discPct,
+              discountAmt: totals.discAmt,
+              servicePct: totals.svcPct,
+              serviceAmt: totals.svcAmt,
+              grandTotal: totals.grand,
+              items: order.map(x => ({ name: x.name, qty: x.qty, price: x.price })),
+              pendingStock: true,
+              closedBy: "staff"
+            };
+            tx.set(saleRef, saleObj, { merge: true });
+
+            const d = tablesSnap.data() || {};
+            const tbl = Array.isArray(d.tables) && d.tables.length ? d.tables : tables;
+            const ords = d.tableOrders || {};
+            tbl.forEach(t => { if(!Array.isArray(ords[t])) ords[t] = []; });
+            ords[tName] = [];
+            tx.set(refTables, { tables: tbl, tableOrders: ords }, { merge: true });
+          });
+
+          document.getElementById('disc-pct').value = '';
+          document.getElementById('svc-pct').value = '';
+          document.getElementById('pay-type').value = 'Nağd';
+          alert("Sifariş bağlandı! (Stok admin tərəfindən düşəcək)");
+          return;
+        }
+
+        // ADMIN
+        await runTransaction(db, async (tx) => {
+          const tablesSnap = await tx.get(refTables);
+          if(!tablesSnap.exists()) throw new Error("Tables state tapılmadı!");
+
+          const invSnaps = [];
+          for(const it of order){
+            const invRef = refBranch("inventory", safeId(it.name));
+            const invSnap = await tx.get(invRef);
+            if(!invSnap.exists()) throw new Error("Stok tapılmadı: " + it.name);
+            invSnaps.push({ it, invRef, inv: invSnap.data() });
+          }
+
+          let cst = 0;
+          for(const x of invSnaps){
+            const have = Number(x.inv.qty || 0);
+            const need = Number(x.it.qty || 0);
+            if(have < need) throw new Error("Stok çatmır: " + x.it.name);
+            cst += Number(x.inv.cost || 0) * need;
+          }
+
+          for(const x of invSnaps){
+            const have = Number(x.inv.qty || 0);
+            const need = Number(x.it.qty || 0);
+            tx.update(x.invRef, { qty: have - need });
+          }
+
+          tx.set(saleRef, {
+            id: saleId,
+            date: new Date().toLocaleDateString(),
+            dateISO: todayISO(),
+            revenue: totals.sub,
+            cost: cst,
+            details: tName + " Satışı",
+            table: tName,
+            payType,
+            discountPct: totals.discPct,
+            discountAmt: totals.discAmt,
+            servicePct: totals.svcPct,
+            serviceAmt: totals.svcAmt,
+            grandTotal: totals.grand,
+            items: order.map(x => ({ name: x.name, qty: x.qty, price: x.price })),
+            pendingStock: false,
+            closedBy: "admin"
+          }, { merge: true });
+
+          const d = tablesSnap.data() || {};
+          const tbl = Array.isArray(d.tables) && d.tables.length ? d.tables : tables;
+          const ords = d.tableOrders || {};
+          tbl.forEach(t => { if(!Array.isArray(ords[t])) ords[t] = []; });
+          ords[tName] = [];
+          tx.set(refTables, { tables: tbl, tableOrders: ords }, { merge: true });
+        });
+
+        document.getElementById('disc-pct').value = '';
+        document.getElementById('svc-pct').value = '';
+        document.getElementById('pay-type').value = 'Nağd';
+        alert("Sifariş tamamlandı!");
+
+      } catch(err){
+        alert(err?.message || "Xəta baş verdi!");
+      }
+    }
+
+    async function saveExpenseAction(){
+      if(!requireAdmin()) return;
+
+      const n = document.getElementById('ex-n').value.trim();
+      const v = parseFloat(document.getElementById('ex-v').value);
+      const cash = getCashNow();
+
+      if(!n || isNaN(v) || v<=0) return alert("Məlumatları düzgün daxil et!");
+      if(v > cash) return alert("Kassada yetərli məbləğ yoxdur!");
+
+      const id = Date.now();
+      await setDoc(refBranch("expenses", String(id)), {
+        id, date: new Date().toLocaleDateString(), dateISO: todayISO(), name: n, val: v
+      }, { merge: true });
+
+      document.getElementById('ex-n').value = '';
+      document.getElementById('ex-v').value = '';
+    }
+
+    async function deleteExpense(id){
+      if(!requireAdmin()) return;
+      await deleteDoc(refBranch("expenses", String(id)));
+    }
+
     async function setResetCodePrompt(){
       if(!requireAdmin()) return;
-      const curr=await getResetCode();
-      const entered=prompt("Hazırkı reset kodunu yaz:"); if(entered===null) return;
-      if(String(entered)!==String(curr)) return alert("Kod səhvdir!");
-      const n1=prompt("Yeni reset kodu:"); if(n1===null) return;
-      const n2=prompt("Təkrar:"); if(n2===null) return;
-      if(String(n1)!==String(n2)) return alert("Uyğun deyil!");
+
+      const curr = await getResetCode();
+      const entered = prompt("Hazırkı reset kodunu yaz:");
+      if(entered === null) return;
+      if(String(entered) !== String(curr)) return alert("Kod səhvdir!");
+
+      const n1 = prompt("Yeni reset kodu təyin et (məs: 7788):");
+      if(n1 === null) return;
+      if(!String(n1).trim()) return alert("Kod boş ola bilməz!");
+      const n2 = prompt("Yeni reset kodunu təkrar yaz:");
+      if(n2 === null) return;
+      if(String(n1) !== String(n2)) return alert("Kodlar uyğun deyil!");
+
       await setResetCode(n1);
       alert("Reset kodu yeniləndi!");
     }
 
     async function resetDataPrompt(){
       if(!requireAdmin()) return;
-      const code=prompt("RESET KODU:"); if(code===null) return;
-      const real=await getResetCode();
-      if(String(code)!==String(real)) return alert("Kod səhvdir!");
-      const ok=prompt("Təsdiq üçün 'SIFIRLA' yaz:"); if(ok===null) return;
-      if(String(ok).trim().toUpperCase()!=="SIFIRLA") return alert("Ləğv edildi.");
 
+      const code = prompt("BÜTÜN DATANI SIFIRLAMAQ ÜÇÜN RESET KODUNU YAZ:");
+      if(code === null) return;
+      const real = await getResetCode();
+      if(String(code) !== String(real)) return alert("Kod səhvdir!");
+
+      const confirmText = prompt("Təsdiq üçün 'SIFIRLA' yaz:");
+      if(confirmText === null) return;
+      if(String(confirmText).trim().toUpperCase() !== "SIFIRLA") return alert("Təsdiq ləğv edildi.");
+
+      // Full wipe (inventory/purchases/sales/expenses)
       for(const c of ["inventory","purchases","sales","expenses"]){
-        const snap=await getDocs(colBranch(c));
+        const snap = await getDocs(colBranch(c));
         if(!snap.empty){
-          const batch=writeBatch(db);
-          snap.docs.forEach(d=>batch.delete(d.ref));
+          const batch = writeBatch(db);
+          snap.docs.forEach(d => batch.delete(d.ref));
           await batch.commit();
         }
       }
-      const initTables=["Masa 1","Masa 2","Masa 3"];
-      const initOrders={}; initTables.forEach(t=>initOrders[t]=[]);
-      await setDoc(refTables,{tables:initTables,tableOrders:initOrders},{merge:false});
+
+      // reset tables
+      const initTables = ["Masa 1","Masa 2","Masa 3"];
+      const initOrders = {};
+      initTables.forEach(t => initOrders[t]=[]);
+      activeIdx = 0;
+      await setDoc(refTables, { tables: initTables, tableOrders: initOrders }, { merge: false });
+
       alert("Bütün data tam sıfırlandı!");
     }
 
-    // ==== AUTH ====
-    async function adminEmailLogin(){
-      const email=document.getElementById("admin-email").value.trim();
-      const pass=document.getElementById("admin-pass").value;
-      if(!email||!pass) return alert("Email və parolu yaz!");
-      try{ await signInWithEmailAndPassword(auth,email,pass); }
-      catch(e){ alert("Admin giriş alınmadı: "+(e?.message||"xəta")); }
+    // ===== AUTH (admin yalnız parol) =====
+    async function adminLogin(){
+      const passEl = document.getElementById("admin-pass");
+      const pass = passEl ? passEl.value : "";
+      if(!pass) return alert("Admin parolu yaz!");
+      if(!ADMIN_EMAIL || ADMIN_EMAIL.includes("BURAYA") || ADMIN_EMAIL.includes("ADMIN_EMAIL")){
+        return alert("Kodda ADMIN_EMAIL doldurulmayıb!");
+      }
+      try{
+        await signInWithEmailAndPassword(auth, ADMIN_EMAIL, pass);
+      }catch(e){
+        alert("Admin giriş alınmadı: " + (e?.message || "xəta"));
+      }
     }
-    async function staffAnonLogin(){
-      try{ await signInAnonymously(auth); }
-      catch(e){ alert("Ofisiant giriş alınmadı: "+(e?.message||"xəta")); }
+
+    async function staffLogin(){
+      try{
+        await signInAnonymously(auth);
+      }catch(e){
+        alert("Ofisiant giriş alınmadı: " + (e?.message || "xəta"));
+      }
     }
+
+    // ✅ LOGOUT: inputlar boşalsın
     async function logoutAction(){
       stopRealtime();
-      if(clockTimer){ clearInterval(clockTimer); clockTimer=null; }
-      try{ await signOut(auth);}catch(e){}
+      if(clockTimer){ clearInterval(clockTimer); clockTimer = null; }
+
+      const passEl = document.getElementById("admin-pass");
+      if(passEl) passEl.value = "";
+
+      const hint = document.getElementById("login-hint");
+      if(hint) hint.innerText = "";
+
+      try{ await signOut(auth); }catch(e){}
+      document.getElementById("login-overlay").style.display = "flex";
     }
 
     async function initSystem(){
       startRealtime();
+
+      const iso = todayISO();
+      const repFrom = document.getElementById("rep-from");
+      const repTo = document.getElementById("rep-to");
+      if(repFrom && !repFrom.value) repFrom.value = iso;
+      if(repTo && !repTo.value) repTo.value = iso;
+
       if(clockTimer) clearInterval(clockTimer);
-      clockTimer=setInterval(()=> document.getElementById("clock").innerText=new Date().toLocaleTimeString("az-AZ"),1000);
+      clockTimer = setInterval(() => {
+        document.getElementById("clock").innerText = new Date().toLocaleTimeString("az-AZ");
+      }, 1000);
 
-      const iso=todayISO();
-      const rf=document.getElementById("rep-from"); const rt=document.getElementById("rep-to");
-      if(rf && !rf.value) rf.value=iso;
-      if(rt && !rt.value) rt.value=iso;
+      renderTables();
+      renderMenu();
+      renderOrderList();
+      recalcTotals();
 
-      renderTables(); renderMenu(); renderOrderList(); recalcTotals();
-      if(isAdmin()){ renderPurchases(); renderExpenses(); fillReportTablesDropdown(); }
+      if(isAdmin()){
+        renderPurchases();
+        renderExpenses();
+        fillReportTablesDropdown();
+      }
     }
 
     function switchTab(v, el){
-      const adminViews=["purchase","stock","expense","report"];
-      if(adminViews.includes(v) && !isAdmin()){ alert("Bu bölmə yalnız ADMIN üçündür!"); return; }
-      document.querySelectorAll(".view").forEach(x=>x.classList.remove("active"));
-      document.querySelectorAll(".nav-item").forEach(n=>n.classList.remove("active"));
+      const adminViews = ["purchase","stock","expense","report"];
+      if(adminViews.includes(v) && !isAdmin()){
+        alert("Bu bölmə yalnız ADMIN üçündür!");
+        return;
+      }
+      document.querySelectorAll(".view").forEach(x => x.classList.remove("active"));
+      document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
       document.getElementById("view-"+v).classList.add("active");
       el.classList.add("active");
-      const titles={pos:"Satış Terminalı",purchase:"Alış (İdxal)",stock:"Stok (Anbar)",expense:"Xərclər",report:"Hesabatlar"};
-      document.getElementById("page-title").innerText=titles[v]||"Keeper Pro";
+
+      const titles = { pos:"Satış Terminalı", purchase:"Alış (İdxal)", stock:"Stok (Anbar)", expense:"Xərclər", report:"Hesabatlar" };
+      document.getElementById("page-title").innerText = titles[v] || "Keeper Pro";
+
       if(v==="stock") renderStock();
       if(v==="purchase") renderPurchases();
       if(v==="expense") renderExpenses();
@@ -709,22 +1067,22 @@
       if(v==="pos"){ renderMenu(); renderOrderList(); recalcTotals(); }
     }
 
-    onAuthStateChanged(auth, async(user)=>{
+    // ===== AUTH STATE =====
+    onAuthStateChanged(auth, async(user) => {
       if(!user){
-        document.getElementById("login-overlay").style.display="flex";
-        currentRole="staff";
+        document.getElementById("login-overlay").style.display = "flex";
+        currentRole = "staff";
         applyRoleToUI();
         stopRealtime();
         return;
       }
 
-      document.getElementById("login-overlay").style.display="none";
+      document.getElementById("login-overlay").style.display = "none";
 
-      // rolu tap
       currentRole = await detectRole(user);
 
-      // email user və public yoxdur -> ilk admin init
-      if(!user.isAnonymous && currentRole==="admin"){
+      // first email user => init docs
+      if(!user.isAnonymous && currentRole === "admin"){
         await ensureAdminInitDocs(user);
         currentRole = await detectRole(user);
       }
@@ -733,34 +1091,34 @@
       await initSystem();
     });
 
-    // EXPORTS
-    window.adminEmailLogin=adminEmailLogin;
-    window.staffAnonLogin=staffAnonLogin;
-    window.logoutAction=logoutAction;
+    // ===== EXPORTS FOR onclick =====
+    window.adminLogin = adminLogin;
+    window.staffLogin = staffLogin;
+    window.logoutAction = logoutAction;
 
-    window.switchTab=switchTab;
+    window.switchTab = switchTab;
 
-    window.selectTable=selectTable;
-    window.addTablePrompt=addTablePrompt;
+    window.selectTable = selectTable;
+    window.addTablePrompt = addTablePrompt;
 
-    window.addItemToOrder=addItemToOrder;
-    window.updateOrderQty=updateOrderQty;
-    window.removeOrderItem=removeOrderItem;
+    window.addItemToOrder = addItemToOrder;
+    window.updateOrderQty = updateOrderQty;
+    window.removeOrderItem = removeOrderItem;
 
-    window.recalcTotals=recalcTotals;
-    window.printReceiptAction=printReceiptAction;
-    window.completeOrderAction=completeOrderAction;
+    window.recalcTotals = recalcTotals;
+    window.printReceiptAction = printReceiptAction;
+    window.completeOrderAction = completeOrderAction;
 
-    window.savePurchaseAction=savePurchaseAction;
-    window.delPur=delPur;
+    window.savePurchaseAction = savePurchaseAction;
+    window.delPur = delPur;
 
-    window.saveExpenseAction=saveExpenseAction;
-    window.deleteExpense=deleteExpense;
+    window.saveExpenseAction = saveExpenseAction;
+    window.deleteExpense = deleteExpense;
 
-    window.renderReport=renderReport;
+    window.renderReport = renderReport;
 
-    window.resetDataPrompt=resetDataPrompt;
-    window.setResetCodePrompt=setResetCodePrompt;
+    window.resetDataPrompt = resetDataPrompt;
+    window.setResetCodePrompt = setResetCodePrompt;
   </script>
 </body>
 </html>
