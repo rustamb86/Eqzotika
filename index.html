@@ -286,34 +286,34 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // 🔧 Eyni layihəni bir neçə filial üçün istəsən BRANCH_ID-ni dəyiş
+    // 🔧 Filial
     const BRANCH_ID = "main_branch";
 
-    // ==== COLLECTION/DOC PATHS ====
+    // ==== PATH HELPERS ====
     const refBranch = (...parts) => doc(db, "branches", BRANCH_ID, ...parts);
     const colBranch = (...parts) => collection(db, "branches", BRANCH_ID, ...parts);
 
     const refTables = refBranch("meta", "tables");
     const refSettings = refBranch("meta", "settings");
 
-    // ==== APP STATE (REALTIME SNAPSHOTS DOLDURUR) ====
-    const ADMIN_CODE = "1234"; // giriş üçün sənin əvvəlki parolun
+    // ==== APP STATE ====
+    const ADMIN_CODE = "1234";
     let currentRole = "staff";
 
-    let inventory = {};     // { [name]: {name, qty, sell, cost, minQty} }
-    let purchases = [];     // [{id,...}]
+    let inventory = {};
+    let purchases = [];
     let sales = [];
     let expenses = [];
 
     let tables = ["Masa 1", "Masa 2", "Masa 3"];
-    let tableOrders = {};   // { [tableName]: [{name,qty,price,cost}] }
+    let tableOrders = {};
     let activeIdx = 0;
 
     let unsubscribers = [];
     let clockTimer = null;
 
     // ==== HELPERS ====
-    const isAdmin = () => currentRole === "admin";
+    const isAdmin = () => currentRole === 'admin';
     const requireAdmin = () => {
       if (!isAdmin()) { alert("Bu bölmə yalnız ADMIN üçündür!"); return false; }
       return true;
@@ -321,7 +321,7 @@
 
     const encName = (s) => encodeURIComponent(String(s));
     const decName = (s) => decodeURIComponent(String(s));
-    const safeId = (s) => encodeURIComponent(String(s)); // Firestore docId üçün
+    const safeId = (s) => encodeURIComponent(String(s));
 
     function todayISO(){
       const d = new Date();
@@ -366,7 +366,7 @@
       return s - e;
     }
 
-    // ==== FIRESTORE WRITE HELPERS ====
+    // ==== INIT DOCS ====
     async function ensureInitDocs(){
       const tSnap = await getDoc(refTables);
       if(!tSnap.exists()){
@@ -380,31 +380,6 @@
       }
     }
 
-    async function writeTablesState(){
-      // activeIdx lokal qalır, DB-yə yazmırıq
-      const clean = {};
-      (tables||[]).forEach(t => clean[t] = Array.isArray(tableOrders[t]) ? tableOrders[t] : []);
-      await setDoc(refTables, { tables, tableOrders: clean }, { merge: true });
-    }
-
-    async function upsertInventoryItem(name, data){
-      const id = safeId(name);
-      await setDoc(refBranch("inventory", id), { ...data, name }, { merge: true });
-    }
-
-    async function deleteInventoryItem(name){
-      const id = safeId(name);
-      await deleteDoc(refBranch("inventory", id));
-    }
-
-    async function setResetCode(newCode){
-      await setDoc(refSettings, { resetCode: String(newCode) }, { merge: true });
-    }
-    async function getResetCode(){
-      const snap = await getDoc(refSettings);
-      return (snap.exists() && snap.data().resetCode) ? String(snap.data().resetCode) : ADMIN_CODE;
-    }
-
     // ==== REALTIME LISTENERS ====
     function stopRealtime(){
       unsubscribers.forEach(fn => { try{ fn(); }catch(e){} });
@@ -414,7 +389,6 @@
     function startRealtime(){
       stopRealtime();
 
-      // inventory realtime
       unsubscribers.push(
         onSnapshot(colBranch("inventory"), (snap) => {
           const next = {};
@@ -428,7 +402,6 @@
         })
       );
 
-      // tables realtime
       unsubscribers.push(
         onSnapshot(refTables, (snap) => {
           if(!snap.exists()) return;
@@ -447,28 +420,25 @@
         })
       );
 
-      // purchases realtime
       unsubscribers.push(
-        onSnapshot(query(colBranch("purchases"), orderBy("id", "desc")), (snap) => {
+        onSnapshot(query(colBranch("purchases"), orderBy("id","desc")), (snap) => {
           purchases = snap.docs.map(d => d.data());
           if(isAdmin() && document.getElementById('view-purchase').classList.contains('active')) renderPurchases();
         })
       );
 
-      // sales realtime
       unsubscribers.push(
-        onSnapshot(query(colBranch("sales"), orderBy("id", "desc")), (snap) => {
+        onSnapshot(query(colBranch("sales"), orderBy("id","desc")), (snap) => {
           sales = snap.docs.map(d => d.data());
           if(isAdmin()){
-            renderExpenses(); // kassaya təsir edir
+            renderExpenses();
             if(document.getElementById('view-report').classList.contains('active')) renderReport();
           }
         })
       );
 
-      // expenses realtime
       unsubscribers.push(
-        onSnapshot(query(colBranch("expenses"), orderBy("id", "desc")), (snap) => {
+        onSnapshot(query(colBranch("expenses"), orderBy("id","desc")), (snap) => {
           expenses = snap.docs.map(d => d.data());
           if(isAdmin()){
             renderExpenses();
@@ -478,16 +448,34 @@
       );
     }
 
-    // ==== UI (RENDER) ====
+    // ==== WRITES ====
+    async function writeTablesState(){
+      const clean = {};
+      (tables||[]).forEach(t => clean[t] = Array.isArray(tableOrders[t]) ? tableOrders[t] : []);
+      await setDoc(refTables, { tables, tableOrders: clean }, { merge: true });
+    }
+
+    async function upsertInventoryItem(name, data){
+      const id = safeId(name);
+      await setDoc(refBranch("inventory", id), { ...data, name }, { merge: true });
+    }
+
+    async function getResetCode(){
+      const snap = await getDoc(refSettings);
+      return (snap.exists() && snap.data().resetCode) ? String(snap.data().resetCode) : ADMIN_CODE;
+    }
+    async function setResetCode(newCode){
+      await setDoc(refSettings, { resetCode: String(newCode) }, { merge: true });
+    }
+
+    // ==== UI RENDER ====
     function renderTables(){
       const list = document.getElementById('table-list');
       if(!list) return;
-
       if(!tables.length){
         list.innerHTML = `<div style="opacity:.7; padding:10px;">Masa yoxdur</div>`;
         return;
       }
-
       list.innerHTML = tables.map((t, i) => {
         const busy = (tableOrders[t] && tableOrders[t].length) ? 'busy' : '';
         const active = (activeIdx===i) ? 'active' : '';
@@ -598,6 +586,7 @@
       sel.value = curr || "";
     }
 
+    // ==== REPORTS ====
     function renderReport(){
       if(!requireAdmin()) return;
 
@@ -606,7 +595,6 @@
       const tableFilter = document.getElementById('rep-table').value;
 
       const normalizeISO = (x) => x.dateISO || toISOFromLocalDateString(x.date) || "";
-
       const inRange = (iso) => {
         if(!iso) return true;
         if(from && iso < from) return false;
@@ -627,7 +615,6 @@
       const exp = filteredExp.reduce((a,b)=>a+(b.val||0),0);
       const profit = gross - cst - exp;
 
-      // masa stats
       const tableStats = {};
       const prodStats = {};
       filteredSales.forEach(s => {
@@ -809,7 +796,7 @@
       window.print();
     }
 
-    // ==== ACTIONS (FIRESTORE REALTIME WRITE) ====
+    // ==== ACTIONS ====
     async function selectTable(i){
       activeIdx = i;
       renderTables();
@@ -842,7 +829,6 @@
 
       const existing = order.find(i => i.name === n);
       if(existing){
-        // stok limiti check (sifariş daxilində artım)
         if(existing.qty + 1 > Number(inventory[n].qty||0)) return alert("Stok çatışmır!");
         existing.qty += 1;
       } else {
@@ -944,6 +930,7 @@
       }
     }
 
+    // ✅ DÜZƏLDİLMİŞ COMPLETE ORDER (READS BEFORE WRITES)
     async function completeOrderAction(){
       const tName = tables[activeIdx];
       const order = tableOrders[tName] || [];
@@ -957,25 +944,35 @@
 
       try{
         await runTransaction(db, async (tx) => {
-          // 1) stok yoxlaması + azaldılması
-          let cst = 0;
+
+          // 1) BÜTÜN READ-LƏR ƏVVƏL
+          const tablesSnap = await tx.get(refTables);
+          if(!tablesSnap.exists()) throw new Error("Tables state tapılmadı!");
+
+          const invSnaps = [];
           for(const it of order){
             const invRef = refBranch("inventory", safeId(it.name));
             const invSnap = await tx.get(invRef);
             if(!invSnap.exists()) throw new Error("Stok tapılmadı: " + it.name);
-
-            const inv = invSnap.data();
-            const have = Number(inv.qty||0);
-            const need = Number(it.qty||0);
-
-            if(have < need) throw new Error("Stok çatmır: " + it.name);
-
-            const newQty = have - need;
-            tx.update(invRef, { qty: newQty });
-            cst += Number(inv.cost||0) * need;
+            invSnaps.push({ it, invRef, inv: invSnap.data() });
           }
 
-          // 2) satış yaz
+          // 2) HESABLA (hələ write yox)
+          let cst = 0;
+          for(const x of invSnaps){
+            const have = Number(x.inv.qty || 0);
+            const need = Number(x.it.qty || 0);
+            if(have < need) throw new Error("Stok çatmır: " + x.it.name);
+            cst += Number(x.inv.cost || 0) * need;
+          }
+
+          // 3) WRITE-LƏR SONRA
+          for(const x of invSnaps){
+            const have = Number(x.inv.qty || 0);
+            const need = Number(x.it.qty || 0);
+            tx.update(x.invRef, { qty: have - need });
+          }
+
           const saleObj = {
             id: saleId,
             date: new Date().toLocaleDateString(),
@@ -994,9 +991,7 @@
           };
           tx.set(saleRef, saleObj, { merge: true });
 
-          // 3) masa sifarişini sıfırla
-          const tablesSnap = await tx.get(refTables);
-          const d = tablesSnap.exists() ? (tablesSnap.data() || {}) : {};
+          const d = tablesSnap.data() || {};
           const tbl = Array.isArray(d.tables) && d.tables.length ? d.tables : tables;
           const ords = d.tableOrders || {};
           tbl.forEach(t => { if(!Array.isArray(ords[t])) ords[t] = []; });
@@ -1010,6 +1005,7 @@
 
         alert("Sifariş tamamlandı!");
         notifyLowStock();
+
       } catch(err){
         alert(err?.message || "Xəta baş verdi!");
       }
@@ -1069,20 +1065,12 @@
       if(confirmText === null) return;
       if(String(confirmText).trim().toUpperCase() !== "SIFIRLA") return alert("Təsdiq ləğv edildi.");
 
-      // ⚠️ Firestore-da kolleksiyaları “toplu silmə” üçün admin SDK lazımdır.
-      // Biz burda “state”-ləri boşaldırıq: tables, inventory, logs hamısını tək-tək silmək üçün
-      // sadə variant: əsas doc-ları sıfırla + gələcək loglar yenidən yığılacaq.
-      // (İstəsən tam silmə üçün ayrıca “Cloud Function” da qura bilərik.)
-
-      // tables reset
       tables = ["Masa 1", "Masa 2", "Masa 3"];
       tableOrders = {};
       tables.forEach(t => tableOrders[t] = []);
       activeIdx = 0;
       await setDoc(refTables, { tables, tableOrders }, { merge: false });
 
-      // “inventory” və logları tam silmək üçün: hər doc-u oxuyub delete etmək lazımdır.
-      // Bu sadə reset: UI tərəfdə “təzə başlanğıc” verir. Tam silmək istəyirsənsə yaz, əlavə edim.
       alert("Sistem sıfırlandı (masalar/sifarişlər). Tam data silmək üçün ayrıca ‘full wipe’ əlavə etmək olar.");
     }
 
@@ -1122,7 +1110,6 @@
 
       document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
 
-      // POS-a qaytarsın
       const firstNav = document.querySelector('.nav-item');
       if(firstNav) switchTab('pos', firstNav);
     }
@@ -1131,7 +1118,6 @@
       await ensureInitDocs();
       startRealtime();
 
-      // tarix inputlarını default et
       const iso = todayISO();
       const repFrom = document.getElementById('rep-from');
       const repTo = document.getElementById('rep-to');
@@ -1140,13 +1126,11 @@
       if(repTo && !repTo.value) repTo.value = iso;
       if(zDate && !zDate.value) zDate.value = iso;
 
-      // clock
       if(clockTimer) clearInterval(clockTimer);
       clockTimer = setInterval(() => {
         document.getElementById('clock').innerText = new Date().toLocaleTimeString('az-AZ');
       }, 1000);
 
-      // ilk render (snapshot gələnə qədər boş qalmasın)
       renderTables();
       renderMenu();
       renderOrderList();
@@ -1180,7 +1164,7 @@
       document.getElementById('page-title').innerText = titles[v] || 'Keeper Pro';
     }
 
-    // ==== EXPORT FUNCTIONS FOR INLINE onclick ====
+    // ==== EXPORTS FOR onclick ====
     window.promptAdmin = promptAdmin;
     window.cancelAdmin = cancelAdmin;
     window.tryAdminLogin = tryAdminLogin;
