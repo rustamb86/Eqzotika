@@ -244,15 +244,6 @@
 
           <div id="rep-stats" style="display:flex; gap:15px; margin:20px 0; flex-wrap:wrap;"></div>
 
-          <div class="glass-window" style="height:auto; padding:15px; margin-bottom:15px;">
-            <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
-              <div style="font-weight:800; color:var(--accent);">Gün ərzində masa üzrə verilənlər</div>
-              <input type="date" id="day-table-date" class="glass-input" style="width:220px; margin-bottom:0;">
-              <button class="btn-action" style="background:rgba(255,255,255,0.1); width:220px;" onclick="renderDayTableSummary()">GÖSTƏR</button>
-            </div>
-            <div id="day-table-box" style="margin-top:12px; line-height:1.65; opacity:.95;"></div>
-          </div>
-
           <table class="glass-table">
             <thead><tr><th>Tarix</th><th>Növ</th><th>Detallar</th><th>Məbləğ</th></tr></thead>
             <tbody id="rep-history"></tbody>
@@ -339,6 +330,22 @@
       const e = expenses.reduce((a,b)=>a+(b.val||0),0);
       return s - e;
     }
+    function actorLabel(){
+      const u = auth.currentUser;
+      if(!u) return isAdmin() ? "Admin" : "Ofisiant";
+      if(isAdmin()) return `Admin`;
+      return `Ofisiant`;
+    }
+    function actorMeta(){
+      const u = auth.currentUser;
+      return {
+        closedByRole: currentRole,
+        closedByLabel: actorLabel(),
+        closedByUid: u ? u.uid : "",
+        closedByEmail: (u && u.email) ? u.email : ""
+      };
+    }
+
     function applyRoleToUI(){
       document.querySelectorAll(".admin-only").forEach(el => {
         el.style.display = (isAdmin() ? "" : "none");
@@ -397,7 +404,6 @@
           tables = Array.isArray(d.tables) && d.tables.length ? d.tables : tables;
           tableOrders = d.tableOrders || {};
           tables.forEach(t => { if(!Array.isArray(tableOrders[t])) tableOrders[t] = []; });
-
           if(activeIdx < 0 || activeIdx >= tables.length) activeIdx = 0;
 
           renderTables();
@@ -581,8 +587,8 @@
         .filter(e => inRange(e.dateISO));
 
       const gross = filteredSales.reduce((a,b)=>a+(b.grandTotal ?? b.revenue ?? 0),0);
-      const cst = filteredSales.reduce((a,b)=>a+(b.cost||0),0);     // ✅ MAYA
-      const exp = filteredExp.reduce((a,b)=>a+(b.val||0),0);        // ✅ XƏRC
+      const cst = filteredSales.reduce((a,b)=>a+(b.cost||0),0);   // maya
+      const exp = filteredExp.reduce((a,b)=>a+(b.val||0),0);      // xerc
       const profit = gross - cst - exp;
 
       document.getElementById("rep-stats").innerHTML =
@@ -601,57 +607,13 @@
 
       all.forEach(x => {
         if(x.__type === 'sale'){
-          const det = `${x.details || "Satış"} (${x.table || "-"}) | ${x.payType || "Nağd"}`;
+          const who = x.closedByLabel || (x.closedByRole === "admin" ? "Admin" : "Ofisiant");
+          const det = `${x.details || "Satış"} (${x.table || "-"}) | ${x.payType || "Nağd"} | Vuran: ${who}`;
           h.innerHTML += `<tr><td>${x.date||""}</td><td style="color:#10b981">Satış</td><td>${det}</td><td>${Number(x.grandTotal ?? x.revenue ?? 0).toFixed(2)}</td></tr>`;
         } else {
           h.innerHTML += `<tr><td>${x.date||""}</td><td style="color:#ef4444">Xərc</td><td>${x.name||""}</td><td>${(-Number(x.val||0)).toFixed(2)}</td></tr>`;
         }
       });
-    }
-
-    function renderDayTableSummary(){
-      if(!requireAdmin()) return;
-
-      const iso = document.getElementById("day-table-date")?.value || todayISO();
-      const daySales = (sales||[])
-        .map(s => ({...s, dateISO: s.dateISO || toISOFromLocalDateString(s.date) || ""}))
-        .filter(s => s.dateISO === iso);
-
-      const byTable = {};
-      daySales.forEach(s => {
-        const t = s.table || "Naməlum masa";
-        if(!byTable[t]) byTable[t] = {};
-        (s.items || []).forEach(it => {
-          const name = it.name || "Məhsul";
-          const qty = Number(it.qty || 0);
-          byTable[t][name] = (byTable[t][name] || 0) + qty;
-        });
-      });
-
-      const box = document.getElementById("day-table-box");
-      if(!box) return;
-
-      const tableNames = Object.keys(byTable);
-      if(!tableNames.length){
-        box.innerHTML = `<div style="opacity:.8;">${iso} tarixində satış yoxdur.</div>`;
-        return;
-      }
-
-      let html = "";
-      tableNames.sort().forEach(t => {
-        const items = Object.entries(byTable[t])
-          .sort((a,b)=> b[1]-a[1])
-          .map(([name, qty]) => `${name} <b>x${qty}</b>`)
-          .join(", ");
-
-        html += `
-          <div style="margin-bottom:10px;">
-            <div style="font-weight:800; color:var(--accent); margin-bottom:4px;">${t}</div>
-            <div style="opacity:.95;">${items || "Məlumat yoxdur"}</div>
-          </div>
-        `;
-      });
-      box.innerHTML = html;
     }
 
     // ===== POS =====
@@ -716,9 +678,9 @@
       await writeTablesState();
     }
 
+    // ✅ OFİSİANT VURANDA SAĞDA DƏRHAL GÖRÜNSÜN (optimistic render)
     async function addItemToOrder(encodedName){
       const n = decName(encodedName);
-
       if(!tables.length) return alert("Masa yoxdur (admin init etməlidir).");
       if(!inventory[n] || Number(inventory[n].qty||0) <= 0) return alert("Məhsul bitib!");
 
@@ -732,7 +694,16 @@
       } else {
         order.push({ name: n, qty: 1, price: Number(inventory[n].sell||0), cost: Number(inventory[n].cost||0) });
       }
-      await writeTablesState();
+
+      // ✅ dərhal göstər
+      renderOrderList(); recalcTotals(); renderTables();
+
+      // ✅ sonra firestore yaz
+      try{
+        await writeTablesState();
+      }catch(e){
+        alert("Sifariş yazılmadı (icazə/rules): " + (e?.message || "xəta"));
+      }
     }
 
     async function updateOrderQty(encodedName, delta){
@@ -752,7 +723,15 @@
       if(item.qty <= 0){
         tableOrders[tName] = list.filter(i => i.name !== n);
       }
-      await writeTablesState();
+
+      // ✅ dərhal göstər
+      renderOrderList(); recalcTotals(); renderTables();
+
+      try{
+        await writeTablesState();
+      }catch(e){
+        alert("Dəyişiklik yazılmadı (icazə/rules): " + (e?.message || "xəta"));
+      }
     }
 
     async function removeOrderItem(encodedName){
@@ -760,7 +739,15 @@
       if(!tables.length) return;
       const tName = tables[activeIdx];
       tableOrders[tName] = (tableOrders[tName] || []).filter(i => i.name !== n);
-      await writeTablesState();
+
+      // ✅ dərhal göstər
+      renderOrderList(); recalcTotals(); renderTables();
+
+      try{
+        await writeTablesState();
+      }catch(e){
+        alert("Silinmə yazılmadı (icazə/rules): " + (e?.message || "xəta"));
+      }
     }
 
     async function savePurchaseAction(){
@@ -824,6 +811,7 @@
       }
     }
 
+    // ✅ OFİSİANT DA HESABI TAMAMLAYA BİLSİN + STOK AZALSIN
     async function completeOrderAction(){
       const tName = tables[activeIdx];
       const order = tableOrders[tName] || [];
@@ -837,15 +825,44 @@
 
       try{
         await runTransaction(db, async (tx) => {
+
+          // 1) READ-lər əvvəl
           const tablesSnap = await tx.get(refTables);
           if(!tablesSnap.exists()) throw new Error("Tables state tapılmadı!");
 
+          // inventory read
+          const invSnaps = [];
+          for(const it of order){
+            const invRef = refBranch("inventory", safeId(it.name));
+            const invSnap = await tx.get(invRef);
+            if(!invSnap.exists()) throw new Error("Stok tapılmadı: " + it.name);
+            invSnaps.push({ it, invRef, inv: invSnap.data() });
+          }
+
+          // 2) yoxla + maya hesabla
+          let cst = 0;
+          for(const x of invSnaps){
+            const have = Number(x.inv.qty || 0);
+            const need = Number(x.it.qty || 0);
+            if(have < need) throw new Error("Stok çatmır: " + x.it.name);
+            cst += Number(x.inv.cost || 0) * need;
+          }
+
+          // 3) WRITE-lər sonra: stok azalt
+          for(const x of invSnaps){
+            const have = Number(x.inv.qty || 0);
+            const need = Number(x.it.qty || 0);
+            tx.update(x.invRef, { qty: have - need });
+          }
+
+          // satışı yaz
+          const meta = actorMeta();
           tx.set(saleRef, {
             id: saleId,
             date: new Date().toLocaleDateString(),
             dateISO: todayISO(),
             revenue: totals.sub,
-            cost: 0, // maya admin stokdan hesablamaq istəsə, ayrıca funksiya edərik
+            cost: cst,
             details: tName + " Satışı",
             table: tName,
             payType,
@@ -855,9 +872,10 @@
             serviceAmt: totals.svcAmt,
             grandTotal: totals.grand,
             items: order.map(x => ({ name: x.name, qty: x.qty, price: x.price })),
-            closedBy: isAdmin() ? "admin" : "staff"
+            ...meta
           }, { merge: true });
 
+          // masanın sifarişini sıfırla
           const d = tablesSnap.data() || {};
           const tbl = Array.isArray(d.tables) && d.tables.length ? d.tables : tables;
           const ords = d.tableOrders || {};
@@ -866,10 +884,13 @@
           tx.set(refTables, { tables: tbl, tableOrders: ords }, { merge: true });
         });
 
+        // local UI sıfırla
         document.getElementById('disc-pct').value = '';
         document.getElementById('svc-pct').value = '';
         document.getElementById('pay-type').value = 'Nağd';
-        alert("Sifariş bağlandı!");
+
+        alert("Ödəniş tamamlandı! (" + actorLabel() + ")");
+
       } catch(err){
         alert(err?.message || "Xəta baş verdi!");
       }
@@ -952,7 +973,6 @@
     async function adminEmailLogin(){
       const email = document.getElementById("admin-email").value.trim();
       const pass  = document.getElementById("admin-pass").value;
-
       if(!email || !pass) return alert("Email və parol yaz!");
       try{
         await signInWithEmailAndPassword(auth, email, pass);
@@ -974,7 +994,9 @@
       if(clockTimer){ clearInterval(clockTimer); clockTimer = null; }
       try{ await signOut(auth); }catch(e){}
 
-      document.getElementById("admin-pass").value = "";
+      // ✅ çıxışda parol sahəsi təmizlənsin
+      const passEl = document.getElementById("admin-pass");
+      if(passEl) passEl.value = "";
 
       // ✅ çıxışda həmişə POS göstər
       forceOpenPOS();
@@ -989,10 +1011,8 @@
       const iso = todayISO();
       const repFrom = document.getElementById("rep-from");
       const repTo = document.getElementById("rep-to");
-      const dayBox = document.getElementById("day-table-date");
       if(repFrom && !repFrom.value) repFrom.value = iso;
       if(repTo && !repTo.value) repTo.value = iso;
-      if(dayBox && !dayBox.value) dayBox.value = iso;
 
       if(clockTimer) clearInterval(clockTimer);
       clockTimer = setInterval(() => {
@@ -1089,7 +1109,6 @@
     window.deleteExpense = deleteExpense;
 
     window.renderReport = renderReport;
-    window.renderDayTableSummary = renderDayTableSummary;
 
     window.resetDataPrompt = resetDataPrompt;
     window.setResetCodePrompt = setResetCodePrompt;
