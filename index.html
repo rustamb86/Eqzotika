@@ -71,10 +71,17 @@
       <i class="fa-solid fa-gem" style="font-size: 40px; color: var(--accent); margin-bottom: 20px;"></i>
       <h2 style="margin-bottom: 18px;">Sistemə Giriş</h2>
 
-      <button class="btn-action" style="background: var(--primary); margin-bottom: 12px;" onclick="adminGoogleLogin()">
-        <i class="fa-brands fa-google"></i> ADMIN (Google)
+      <!-- ADMIN EMAIL/PASS -->
+      <div style="text-align:left; margin-bottom:10px; font-weight:800; color:var(--accent);">ADMIN</div>
+      <input id="admin-email" class="glass-input" type="email" placeholder="Admin email" value="admin@eqzotika.local" autocomplete="username">
+      <input id="admin-pass" class="glass-input" type="password" placeholder="Admin parol" autocomplete="current-password">
+      <button class="btn-action" style="background: var(--primary); margin-bottom: 14px;" onclick="adminEmailLogin()">
+        <i class="fa-solid fa-right-to-bracket"></i> ADMIN DAXİL OL
       </button>
 
+      <div style="height:1px; background: rgba(255,255,255,0.12); margin: 12px 0;"></div>
+
+      <!-- STAFF -->
       <button class="btn-action" style="background: rgba(255,255,255,0.1);" onclick="staffLogin()">
         <i class="fa-solid fa-user"></i> OFİSİANT GİRİŞİ
       </button>
@@ -239,7 +246,6 @@
 
           <div id="rep-stats" style="display:flex; gap:15px; margin:20px 0; flex-wrap:wrap;"></div>
 
-          <!-- ✅ GÜN ƏRZİNDƏ MASA ÜZRƏ NƏLƏR VERİLİB -->
           <div class="glass-window" style="height:auto; padding:15px; margin-bottom:15px;">
             <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
               <div style="font-weight:800; color:var(--accent);">Gün ərzində masa üzrə verilənlər</div>
@@ -260,7 +266,6 @@
 
   <div id="print-area"></div>
 
-  <!-- FIREBASE -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
     import {
@@ -268,7 +273,7 @@
       onSnapshot, query, orderBy, runTransaction, getDocs, writeBatch
     } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
     import {
-      getAuth, signInWithPopup, GoogleAuthProvider, signInAnonymously, signOut, onAuthStateChanged
+      getAuth, signInWithEmailAndPassword, signInAnonymously, signOut, onAuthStateChanged
     } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 
     // ✅ SƏNİN CONFIG
@@ -284,16 +289,16 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
-    const provider = new GoogleAuthProvider();
+
+    // ✅ ADMIN EMAIL (SƏNİN DEDİYİN)
+    const ADMIN_EMAIL = "admin@eqzotika.local";
 
     const BRANCH_ID = "main_branch";
-
     const refBranch = (...parts) => doc(db, "branches", BRANCH_ID, ...parts);
     const colBranch = (...parts) => collection(db, "branches", BRANCH_ID, ...parts);
 
     const refTables  = refBranch("meta", "tables");
-    const refPublic  = refBranch("meta", "public");   // adminUid burada
-    const refPrivate = refBranch("meta", "private");  // resetCode burada (yalnız admin)
+    const refPrivate = refBranch("meta", "private");  // resetCode burada
 
     let currentRole = "staff";
 
@@ -338,22 +343,13 @@
       const e = expenses.reduce((a,b)=>a+(b.val||0),0);
       return s - e;
     }
-
     function applyRoleToUI(){
       document.querySelectorAll(".admin-only").forEach(el => {
         el.style.display = (isAdmin() ? "" : "none");
       });
     }
 
-    async function ensureAdminInitDocs(user){
-      const pubSnap = await getDoc(refPublic);
-      if(!pubSnap.exists()){
-        await setDoc(refPublic, { adminUid: user.uid }, { merge: false });
-      }
-      const prvSnap = await getDoc(refPrivate);
-      if(!prvSnap.exists()){
-        await setDoc(refPrivate, { resetCode: "1234" }, { merge: false });
-      }
+    async function ensureInitDocs(){
       const tSnap = await getDoc(refTables);
       if(!tSnap.exists()){
         const initTables = ["Masa 1","Masa 2","Masa 3"];
@@ -361,14 +357,10 @@
         initTables.forEach(t => initOrders[t]=[]);
         await setDoc(refTables, { tables: initTables, tableOrders: initOrders }, { merge: false });
       }
-    }
-
-    async function detectRole(user){
-      if(user.isAnonymous) return "staff";
-      const pubSnap = await getDoc(refPublic);
-      if(!pubSnap.exists()) return "admin"; // ilk Google girən init edəcək
-      const adminUid = pubSnap.data()?.adminUid;
-      return (adminUid && adminUid === user.uid) ? "admin" : "staff";
+      const pSnap = await getDoc(refPrivate);
+      if(!pSnap.exists()){
+        await setDoc(refPrivate, { resetCode: "1234" }, { merge: false });
+      }
     }
 
     function stopRealtime(){
@@ -410,7 +402,7 @@
         onSnapshot(query(colBranch("purchases"), orderBy("id","desc")), (snap) => {
           purchases = snap.docs.map(d => d.data());
           if(isAdmin() && document.getElementById("view-purchase").classList.contains("active")) renderPurchases();
-        }, ()=>{})
+        })
       );
 
       unsubscribers.push(
@@ -418,7 +410,7 @@
           sales = snap.docs.map(d => d.data());
           if(isAdmin() && document.getElementById("view-report").classList.contains("active")) renderReport();
           if(isAdmin()) renderExpenses();
-        }, ()=>{})
+        })
       );
 
       unsubscribers.push(
@@ -426,7 +418,7 @@
           expenses = snap.docs.map(d => d.data());
           if(isAdmin() && document.getElementById("view-report").classList.contains("active")) renderReport();
           if(isAdmin()) renderExpenses();
-        }, ()=>{})
+        })
       );
     }
 
@@ -597,7 +589,7 @@
 
       all.forEach(x => {
         if(x.__type === 'sale'){
-          const det = `${x.details || "Satış"} (${x.table || "-"}) | ${x.payType || "Nağd"}` + (x.pendingStock ? " | ⚠ stok düşməyib" : "");
+          const det = `${x.details || "Satış"} (${x.table || "-"}) | ${x.payType || "Nağd"}`;
           h.innerHTML += `<tr><td>${x.date||""}</td><td style="color:#10b981">Satış</td><td>${det}</td><td>${Number(x.grandTotal ?? x.revenue ?? 0).toFixed(2)}</td></tr>`;
         } else {
           h.innerHTML += `<tr><td>${x.date||""}</td><td style="color:#ef4444">Xərc</td><td>${x.name||""}</td><td>${(-Number(x.val||0)).toFixed(2)}</td></tr>`;
@@ -818,8 +810,6 @@
       }
     }
 
-    // ✅ STAFF: sale yazır + masa boşalır, stok düşmür
-    // ✅ ADMIN: sale yazır + stok düşür + masa boşalır
     async function completeOrderAction(){
       const tName = tables[activeIdx];
       const order = tableOrders[tName] || [];
@@ -832,77 +822,17 @@
       const saleRef = refBranch("sales", String(saleId));
 
       try{
-        if(!isAdmin()){
-          await runTransaction(db, async (tx) => {
-            const tablesSnap = await tx.get(refTables);
-            if(!tablesSnap.exists()) throw new Error("Tables state tapılmadı!");
-
-            tx.set(saleRef, {
-              id: saleId,
-              date: new Date().toLocaleDateString(),
-              dateISO: todayISO(),
-              revenue: totals.sub,
-              cost: 0,
-              details: tName + " Satışı",
-              table: tName,
-              payType,
-              discountPct: totals.discPct,
-              discountAmt: totals.discAmt,
-              servicePct: totals.svcPct,
-              serviceAmt: totals.svcAmt,
-              grandTotal: totals.grand,
-              items: order.map(x => ({ name: x.name, qty: x.qty, price: x.price })),
-              pendingStock: true,
-              closedBy: "staff"
-            }, { merge: true });
-
-            const d = tablesSnap.data() || {};
-            const tbl = Array.isArray(d.tables) && d.tables.length ? d.tables : tables;
-            const ords = d.tableOrders || {};
-            tbl.forEach(t => { if(!Array.isArray(ords[t])) ords[t] = []; });
-            ords[tName] = [];
-            tx.set(refTables, { tables: tbl, tableOrders: ords }, { merge: true });
-          });
-
-          document.getElementById('disc-pct').value = '';
-          document.getElementById('svc-pct').value = '';
-          document.getElementById('pay-type').value = 'Nağd';
-          alert("Sifariş bağlandı! (Stok admin tərəfindən düşəcək)");
-          return;
-        }
-
         await runTransaction(db, async (tx) => {
           const tablesSnap = await tx.get(refTables);
           if(!tablesSnap.exists()) throw new Error("Tables state tapılmadı!");
 
-          const invSnaps = [];
-          for(const it of order){
-            const invRef = refBranch("inventory", safeId(it.name));
-            const invSnap = await tx.get(invRef);
-            if(!invSnap.exists()) throw new Error("Stok tapılmadı: " + it.name);
-            invSnaps.push({ it, invRef, inv: invSnap.data() });
-          }
-
-          let cst = 0;
-          for(const x of invSnaps){
-            const have = Number(x.inv.qty || 0);
-            const need = Number(x.it.qty || 0);
-            if(have < need) throw new Error("Stok çatmır: " + x.it.name);
-            cst += Number(x.inv.cost || 0) * need;
-          }
-
-          for(const x of invSnaps){
-            const have = Number(x.inv.qty || 0);
-            const need = Number(x.it.qty || 0);
-            tx.update(x.invRef, { qty: have - need });
-          }
-
+          // Staff da satış yazsın — stok admin düşürəcək
           tx.set(saleRef, {
             id: saleId,
             date: new Date().toLocaleDateString(),
             dateISO: todayISO(),
             revenue: totals.sub,
-            cost: cst,
+            cost: 0,
             details: tName + " Satışı",
             table: tName,
             payType,
@@ -912,8 +842,7 @@
             serviceAmt: totals.svcAmt,
             grandTotal: totals.grand,
             items: order.map(x => ({ name: x.name, qty: x.qty, price: x.price })),
-            pendingStock: false,
-            closedBy: "admin"
+            closedBy: isAdmin() ? "admin" : "staff"
           }, { merge: true });
 
           const d = tablesSnap.data() || {};
@@ -927,7 +856,7 @@
         document.getElementById('disc-pct').value = '';
         document.getElementById('svc-pct').value = '';
         document.getElementById('pay-type').value = 'Nağd';
-        alert("Sifariş tamamlandı!");
+        alert("Sifariş bağlandı!");
       } catch(err){
         alert(err?.message || "Xəta baş verdi!");
       }
@@ -1006,12 +935,16 @@
       alert("Bütün data tam sıfırlandı!");
     }
 
-    // ===== AUTH BUTTONS =====
-    async function adminGoogleLogin(){
+    // ===== AUTH =====
+    async function adminEmailLogin(){
+      const email = document.getElementById("admin-email").value.trim();
+      const pass  = document.getElementById("admin-pass").value;
+
+      if(!email || !pass) return alert("Email və parol yaz!");
       try{
-        await signInWithPopup(auth, provider);
+        await signInWithEmailAndPassword(auth, email, pass);
       }catch(e){
-        alert("Google giriş alınmadı: " + (e?.message || "xəta"));
+        alert("Giriş alınmadı: " + (e?.message || "xəta"));
       }
     }
 
@@ -1026,15 +959,18 @@
     async function logoutAction(){
       stopRealtime();
       if(clockTimer){ clearInterval(clockTimer); clockTimer = null; }
-
-      const hint = document.getElementById("login-hint");
-      if(hint) hint.innerText = "";
-
       try{ await signOut(auth); }catch(e){}
+
+      // ✅ çıxışda xanaları təmizlə
+      document.getElementById("admin-pass").value = "";
+      // email qalmasın istəyirsənsə bu sətiri də aç:
+      // document.getElementById("admin-email").value = "";
+
       document.getElementById("login-overlay").style.display = "flex";
     }
 
     async function initSystem(){
+      await ensureInitDocs();
       startRealtime();
 
       const iso = todayISO();
@@ -1087,38 +1023,36 @@
     // ===== AUTH STATE =====
     onAuthStateChanged(auth, async(user) => {
       if(!user){
-        document.getElementById("login-overlay").style.display = "flex";
         currentRole = "staff";
         applyRoleToUI();
         stopRealtime();
+        document.getElementById("login-overlay").style.display = "flex";
+        document.getElementById("login-hint").innerText = "";
         return;
       }
 
       document.getElementById("login-overlay").style.display = "none";
 
-      currentRole = await detectRole(user);
-
-      if(!user.isAnonymous && currentRole === "admin"){
-        await ensureAdminInitDocs(user);
-        currentRole = await detectRole(user);
+      // ✅ admin yalnız bu email-lə
+      if(!user.isAnonymous && String(user.email || "").toLowerCase() === ADMIN_EMAIL.toLowerCase()){
+        currentRole = "admin";
+      } else {
+        currentRole = "staff";
       }
 
       applyRoleToUI();
       await initSystem();
 
       const hint = document.getElementById("login-hint");
-      if(hint){
-        hint.innerText = isAdmin()
-          ? "Admin giriş aktivdir (Google)."
-          : (user.isAnonymous ? "Ofisiant giriş aktivdir." : "Bu hesab admin deyil.");
-      }
+      hint.innerText = isAdmin()
+        ? "Admin giriş aktivdir (Email/Parol)."
+        : (user.isAnonymous ? "Ofisiant giriş aktivdir." : "Bu hesab admin deyil.");
     });
 
     // EXPORTS
-    window.adminGoogleLogin = adminGoogleLogin;
+    window.adminEmailLogin = adminEmailLogin;
     window.staffLogin = staffLogin;
     window.logoutAction = logoutAction;
-
     window.switchTab = switchTab;
 
     window.selectTable = selectTable;
