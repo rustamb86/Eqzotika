@@ -3,78 +3,108 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>RK-Pro Emerald Enterprise (Real-Time)</title>
+  <title>Keeper Pro (Real-Time)</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    :root {
-      --primary: #10b981; --accent: #fbbf24; --glass-bg: rgba(255, 255, 255, 0.08);
-      --glass-border: rgba(255, 255, 255, 0.12); --text-color: #f8fafc;
-      --sidebar-width: 260px; --danger: #ef4444;
+    :root{
+      --primary:#10b981; --accent:#fbbf24; --glass-bg:rgba(255,255,255,.08);
+      --glass-border:rgba(255,255,255,.12); --text-color:#f8fafc;
+      --sidebar-width:260px; --danger:#ef4444;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
-    body { background: linear-gradient(135deg, #064e3b 0%, #020617 100%); height: 100vh; display: flex; color: var(--text-color); overflow: hidden; }
+    *{box-sizing:border-box;margin:0;padding:0;font-family:'Plus Jakarta Sans',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;}
+    body{background:linear-gradient(135deg,#064e3b 0%,#020617 100%);height:100vh;display:flex;color:var(--text-color);overflow:hidden;}
 
-    /* GİRİŞ SİSTEMİ */
-    #login-overlay { position: fixed; inset: 0; background: rgba(2, 6, 23, 0.98); z-index: 1000; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(15px); }
-    .login-card { background: var(--glass-bg); padding: 40px; border-radius: 30px; border: 1px solid var(--glass-border); text-align: center; width: 380px; }
+    /* LOGIN */
+    #login-overlay{position:fixed;inset:0;background:rgba(2,6,23,.98);z-index:1000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(15px);}
+    .login-card{background:var(--glass-bg);padding:40px;border-radius:30px;border:1px solid var(--glass-border);text-align:center;width:380px;max-width:92vw;}
 
     /* SIDEBAR */
-    .sidebar { width: var(--sidebar-width); background: var(--glass-bg); border-right: 1px solid var(--glass-border); display: flex; flex-direction: column; padding: 30px 20px; z-index: 100; flex-shrink: 0; }
-    .logo-area { display: flex; align-items: center; gap: 15px; margin-bottom: 50px; }
-    .logo-text { font-size: 22px; font-weight: 800; color: #fff; }
-    .nav-list { list-style: none; flex-grow: 1; }
-    .nav-item { padding: 14px 18px; cursor: pointer; display: flex; align-items: center; gap: 15px; font-weight: 500; font-size: 15px; color: rgba(248, 250, 252, 0.6); transition: 0.3s; border-radius: 16px; margin-bottom: 10px; }
-    .nav-item.active { background: linear-gradient(135deg, var(--primary) 0%, #059669 100%); color: #fff; }
+    .sidebar{width:var(--sidebar-width);background:var(--glass-bg);border-right:1px solid var(--glass-border);display:flex;flex-direction:column;padding:30px 20px;z-index:100;flex-shrink:0;}
+    .logo-area{display:flex;align-items:center;gap:15px;margin-bottom:28px;}
+    .logo-text{font-size:22px;font-weight:800;color:#fff;}
+    .nav-list{list-style:none;flex-grow:1;overflow:auto;padding-right:4px;}
+    .nav-item{padding:14px 18px;cursor:pointer;display:flex;align-items:center;gap:15px;font-weight:500;font-size:15px;color:rgba(248,250,252,.6);transition:.25s;border-radius:16px;margin-bottom:10px;}
+    .nav-item.active{background:linear-gradient(135deg,var(--primary) 0%,#059669 100%);color:#fff;}
+    .nav-item:hover{background:rgba(255,255,255,.06);}
 
-    /* MAIN AREA */
-    .main-content { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; }
-    .header { height: 80px; padding: 0 40px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--glass-border); }
-    .time-box { background: rgba(16, 185, 129, 0.1); padding: 10px 22px; border-radius: 14px; border: 1px solid rgba(16, 185, 129, 0.2); font-weight: 700; color: var(--primary); }
-    .content-area { padding: 20px; flex-grow: 1; overflow: hidden; }
-    .view { display: none; height: 100%; }
-    .view.active { display: block; }
-    .glass-window { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(15px); border: 1px solid var(--glass-border); border-radius: 24px; display: flex; flex-direction: column; padding: 20px; height: 100%; }
+    /* MAIN */
+    .main-content{flex-grow:1;display:flex;flex-direction:column;overflow:hidden;}
+    .header{min-height:80px;padding:10px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid var(--glass-border);}
+    .header-left{display:flex;flex-direction:column;gap:4px;}
+    .header-title{font-size:18px;font-weight:800;}
+    .header-sub{font-size:12px;opacity:.75;display:flex;gap:10px;flex-wrap:wrap;}
+    .badge{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.10);padding:6px 10px;border-radius:999px;}
+    .time-box{background:rgba(16,185,129,.1);padding:10px 16px;border-radius:14px;border:1px solid rgba(16,185,129,.2);font-weight:800;color:var(--primary);white-space:nowrap;}
+    .content-area{padding:14px;flex-grow:1;overflow:hidden;}
+    .view{display:none;height:100%;}
+    .view.active{display:block;}
+    .glass-window{background:rgba(255,255,255,.03);backdrop-filter:blur(15px);border:1px solid var(--glass-border);border-radius:24px;display:flex;flex-direction:column;padding:16px;height:100%;}
 
-    /* POS ELEMENTS */
-    .pos-container { display: flex; height: 100%; gap: 15px; }
-    .table-item { background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border); border-radius: 12px; padding: 15px; text-align: center; cursor: pointer; margin-bottom: 10px; transition: 0.3s; }
-    .table-item.active { border-color: var(--accent); color: var(--accent); background: rgba(251, 191, 36, 0.1); }
-    .table-item.busy { border-color: var(--danger); background: rgba(239, 68, 68, 0.2); }
+    /* POS */
+    .pos-container{display:flex;height:100%;gap:12px;}
+    .table-item{background:rgba(255,255,255,.05);border:1px solid var(--glass-border);border-radius:12px;padding:14px;text-align:center;cursor:pointer;margin-bottom:10px;transition:.25s;user-select:none;}
+    .table-item.active{border-color:var(--accent);color:var(--accent);background:rgba(251,191,36,.1);}
+    .table-item.busy{border-color:var(--danger);background:rgba(239,68,68,.2);}
 
-    .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; overflow-y: auto; }
-    .menu-item { background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border); border-radius: 18px; padding: 15px; text-align: center; cursor: pointer; position: relative; }
-    .menu-item b { display: block; color: var(--primary); margin-top: 5px; }
-    .stock-tag { position: absolute; top: 5px; right: 8px; font-size: 10px; color: var(--accent); font-weight: bold; }
-    .out-of-stock { opacity: 0.4; filter: grayscale(1); cursor: not-allowed; }
+    .menu-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;overflow:auto;padding-right:4px;}
+    .menu-item{background:rgba(255,255,255,.05);border:1px solid var(--glass-border);border-radius:18px;padding:14px;text-align:center;cursor:pointer;position:relative;user-select:none;}
+    .menu-item b{display:block;color:var(--primary);margin-top:6px;}
+    .stock-tag{position:absolute;top:6px;right:10px;font-size:10px;color:var(--accent);font-weight:900;}
+    .out-of-stock{opacity:.4;filter:grayscale(1);cursor:not-allowed;}
 
-    /* ORDER SECTION (+/- və Trash) */
-    .order-row { display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.03); padding: 10px; border-radius: 14px; margin-bottom: 8px; border: 1px solid rgba(255,255,255,0.05); }
-    .qty-controls { display: flex; align-items: center; gap: 8px; }
-    .qty-btn { background: none; border: none; color: #fff; cursor: pointer; width: 22px; height: 22px; font-weight: bold; }
-    .trash-btn { color: var(--danger); background: none; border: none; cursor: pointer; margin-left: 10px; font-size: 18px; }
+    /* ORDER */
+    .order-row{display:flex;justify-content:space-between;align-items:center;gap:10px;background:rgba(255,255,255,.03);padding:10px;border-radius:14px;margin-bottom:8px;border:1px solid rgba(255,255,255,.05);}
+    .qty-controls{display:flex;align-items:center;gap:8px;}
+    .qty-btn{background:none;border:none;color:#fff;cursor:pointer;width:24px;height:24px;font-weight:900;font-size:16px;}
+    .trash-btn{color:var(--danger);background:none;border:none;cursor:pointer;margin-left:6px;font-size:18px;}
+    .order-name{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 
-    /* INPUTS & TABLES */
-    .glass-input { background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); padding: 12px; border-radius: 12px; color: white; width: 100%; margin-bottom: 10px; outline: none; }
-    .btn-action { padding: 15px; border: none; border-radius: 16px; color: #fff; font-weight: 700; cursor: pointer; width: 100%; transition: 0.2s; }
-    .glass-table { width: 100%; border-collapse: collapse; }
-    .glass-table th { text-align: left; padding: 12px; color: var(--accent); border-bottom: 2px solid var(--glass-border); }
-    .glass-table td { padding: 12px; border-bottom: 1px solid var(--glass-border); vertical-align: top; }
+    /* INPUTS / BUTTONS / TABLES */
+    .glass-input{background:rgba(255,255,255,.05);border:1px solid var(--glass-border);padding:12px;border-radius:12px;color:white;width:100%;margin-bottom:10px;outline:none;}
+    .glass-input::placeholder{color:rgba(255,255,255,.55);}
+    select.glass-input option{color:#111;}
+    .btn-action{padding:14px;border:none;border-radius:16px;color:#fff;font-weight:900;cursor:pointer;width:100%;transition:.2s;user-select:none;}
+    .btn-action:active{transform:scale(.99);}
+    .glass-table{width:100%;border-collapse:collapse;}
+    .glass-table th{text-align:left;padding:12px;color:var(--accent);border-bottom:2px solid var(--glass-border);}
+    .glass-table td{padding:12px;border-bottom:1px solid var(--glass-border);vertical-align:top;}
+    .row-actions{display:flex;gap:8px;align-items:center;}
 
-    /* ÇEK ÇAPI ÜÇÜN STİL */
-    @media print {
-      body * { visibility: hidden; }
-      #print-area, #print-area * { visibility: visible; }
-      #print-area { position: absolute; left: 0; top: 0; width: 80mm; background: white; color: black; padding: 20px; font-family: 'Courier New', Courier, monospace; display: block !important; }
+    /* PRINT */
+    @media print{
+      body *{visibility:hidden;}
+      #print-area,#print-area *{visibility:visible;}
+      #print-area{position:absolute;left:0;top:0;width:80mm;background:white;color:black;padding:20px;font-family:'Courier New',Courier,monospace;display:block!important;}
     }
-    #print-area { display: none; }
+    #print-area{display:none;}
+
+    /* MODAL */
+    #info-modal{display:none;position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);align-items:center;justify-content:center;}
+    .modal-card{width:min(760px,92vw);max-height:85vh;overflow:auto;padding:16px;}
+
+    /* TABLET / MOBILE */
+    @media (max-width: 1100px){
+      body{overflow:auto;height:auto;min-height:100vh;}
+      .sidebar{position:sticky;top:0;height:100vh;}
+      .main-content{min-height:100vh;}
+      .content-area{overflow:visible;}
+      .pos-container{flex-direction:column;gap:12px;}
+      .pos-container .glass-window{height:auto;}
+      .pos-container .glass-window[style*="width:180px"]{width:100%!important;max-height:260px;}
+      .pos-container .glass-window[style*="width:400px"]{width:100%!important;}
+      .menu-grid{max-height:55vh;}
+      #table-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;}
+      .table-item{margin-bottom:0;}
+    }
   </style>
 </head>
 
 <body>
+  <!-- LOGIN -->
   <div id="login-overlay">
     <div class="login-card">
-      <i class="fa-solid fa-gem" style="font-size: 40px; color: var(--accent); margin-bottom: 20px;"></i>
-      <h2 style="margin-bottom: 25px;">Sistemə Giriş</h2>
+      <i class="fa-solid fa-gem" style="font-size: 40px; color: var(--accent); margin-bottom: 16px;"></i>
+      <h2 style="margin-bottom: 16px;">Sistemə Giriş</h2>
 
       <!-- ADMIN EMAIL/PASS -->
       <div id="admin-pass-container" style="display:none;">
@@ -89,9 +119,13 @@
         <button class="btn-action" style="background: var(--primary); margin-bottom: 12px;" onclick="promptAdmin()">ADMIN GİRİŞİ</button>
         <button class="btn-action" style="background: rgba(255,255,255,0.1);" onclick="loginUser('staff')">OFİSİANT GİRİŞİ</button>
       </div>
+      <div style="opacity:.7; font-size:12px; margin-top:10px;">
+        Ofisiant giriş anonimdir (Firebase Anonymous Auth açıq olmalıdır).
+      </div>
     </div>
   </div>
 
+  <!-- SIDEBAR -->
   <aside class="sidebar">
     <div class="logo-area">
       <i class="fa-solid fa-gem" style="color:var(--accent)"></i>
@@ -106,14 +140,6 @@
       <li class="nav-item admin-only" onclick="switchTab('report', this)"><i class="fa-solid fa-chart-line"></i> Hesabatlar</li>
     </ul>
 
-    <!-- GÜN AÇ/BAĞLA -->
-    <button class="btn-action admin-only" style="background:rgba(255,255,255,0.1); margin-top:10px;" onclick="openDayPrompt()">
-      <i class="fa-solid fa-calendar-plus"></i> GÜNÜ AÇ
-    </button>
-    <button class="btn-action admin-only" style="background:rgba(255,255,255,0.1); margin-top:10px;" onclick="closeDayAction()">
-      <i class="fa-solid fa-calendar-check"></i> GÜNÜ BAĞLA
-    </button>
-
     <button class="btn-action admin-only" style="background:rgba(255,255,255,0.1); margin-top:10px;" onclick="resetDataPrompt()">
       <i class="fa-solid fa-rotate"></i> BÜTÜN DATANI SIFIRLA
     </button>
@@ -121,17 +147,32 @@
       <i class="fa-solid fa-key"></i> RESET KODUNU DƏYİŞ
     </button>
 
-    <button onclick="logoutAction()" style="background:none; border:none; color:var(--danger); cursor:pointer; margin-top:auto; padding:10px; text-align:left; font-weight:700">
+    <button onclick="logoutAction()" style="background:none; border:none; color:var(--danger); cursor:pointer; margin-top:auto; padding:10px; text-align:left; font-weight:900">
       <i class="fa-solid fa-power-off"></i> SİSTEMDƏN ÇIXIŞ
     </button>
   </aside>
 
+  <!-- MAIN -->
   <main class="main-content">
     <header class="header">
-      <h2 id="page-title">Satış Terminalı</h2>
+      <div class="header-left">
+        <div class="header-title" id="page-title">Satış Terminalı</div>
+        <div class="header-sub">
+          <span class="badge"><i class="fa-regular fa-calendar"></i> <span id="bizday">Tarix: -</span></span>
+          <span class="badge"><i class="fa-solid fa-circle"></i> <span id="day-status">Gün: -</span></span>
+          <span class="badge"><i class="fa-solid fa-coins"></i> <span id="bal-box">Nağd: 0.00 | Kart: 0.00 | Köç: 0.00</span></span>
+          <span class="badge admin-only" style="gap:10px;">
+            <button class="btn-action" style="width:auto;padding:8px 10px;border-radius:12px;background:rgba(255,255,255,.10);" onclick="openDayPrompt()">
+              <i class="fa-solid fa-door-open"></i> Günü aç
+            </button>
+            <button class="btn-action" style="width:auto;padding:8px 10px;border-radius:12px;background:rgba(255,255,255,.10);" onclick="closeDayPrompt()">
+              <i class="fa-solid fa-door-closed"></i> Günü bağla
+            </button>
+          </span>
+        </div>
+      </div>
+
       <div style="display:flex; gap:10px; align-items:center;">
-        <div class="time-box" id="bizday">Tarix: --</div>
-        <div class="time-box" id="day-status">Gün: --</div>
         <div class="time-box" id="clock">00:00:00</div>
       </div>
     </header>
@@ -141,11 +182,11 @@
       <div id="view-pos" class="view active">
         <div class="pos-container">
           <div class="glass-window" style="width:180px;">
-            <div style="font-weight:700; color:var(--accent); margin-bottom:15px">
+            <div style="font-weight:900; color:var(--accent); margin-bottom:12px">
               MASALAR
-              <button onclick="addTablePrompt()" class="admin-only" style="float:right; background:var(--primary); color:white; border:none; border-radius:4px; padding:0 5px; cursor:pointer">+</button>
+              <button onclick="addTablePrompt()" class="admin-only" style="float:right; background:var(--primary); color:white; border:none; border-radius:8px; padding:2px 10px; cursor:pointer; font-weight:900">+</button>
             </div>
-            <div id="table-list" style="overflow-y:auto; flex:1"></div>
+            <div id="table-list" style="overflow:auto; flex:1; padding-right:4px;"></div>
           </div>
 
           <div class="glass-window" style="flex:1;">
@@ -153,8 +194,8 @@
           </div>
 
           <div class="glass-window" style="width:400px;">
-            <div id="order-title" style="font-weight:700; color:var(--accent); margin-bottom:15px">MASA SEÇİN</div>
-            <div id="order-items" style="flex:1; overflow-y:auto"></div>
+            <div id="order-title" style="font-weight:900; color:var(--accent); margin-bottom:12px">MASA SEÇİN</div>
+            <div id="order-items" style="flex:1; overflow:auto; padding-right:4px;"></div>
 
             <div style="border-top: 1px solid var(--glass-border); padding-top:12px;">
               <div style="display:flex; gap:10px;">
@@ -171,23 +212,27 @@
               </div>
             </div>
 
-            <div style="border-top: 1px solid var(--glass-border); padding-top:15px; margin-top:12px;">
-              <div style="display:flex; justify-content:space-between; font-size:14px; font-weight:700; opacity:.9;">
+            <div style="border-top: 1px solid var(--glass-border); padding-top:12px; margin-top:12px;">
+              <div style="display:flex; justify-content:space-between; font-size:14px; font-weight:900; opacity:.9;">
                 <span>ARA CƏMİ:</span><span id="sub-val">0.00</span>
               </div>
-              <div style="display:flex; justify-content:space-between; font-size:14px; font-weight:700; opacity:.9; margin-top:6px;">
+              <div style="display:flex; justify-content:space-between; font-size:14px; font-weight:900; opacity:.9; margin-top:6px;">
                 <span>ENDİRİM:</span><span id="disc-val">0.00</span>
               </div>
-              <div style="display:flex; justify-content:space-between; font-size:14px; font-weight:700; opacity:.9; margin-top:6px;">
+              <div style="display:flex; justify-content:space-between; font-size:14px; font-weight:900; opacity:.9; margin-top:6px;">
                 <span>SERVİS:</span><span id="svc-val">0.00</span>
               </div>
 
-              <div style="display:flex; justify-content:space-between; font-size:20px; font-weight:800; color:var(--accent); margin-top:10px;">
+              <div style="display:flex; justify-content:space-between; font-size:20px; font-weight:900; color:var(--accent); margin-top:10px;">
                 CƏMİ: <span id="total-val">0.00</span> AZN
               </div>
 
-              <button class="btn-action" style="background:var(--accent); color:black; margin-top:10px" onclick="printReceiptAction()"><i class="fa-solid fa-print"></i> QƏBZ ÇAP ET</button>
-              <button class="btn-action" style="background:var(--primary); margin-top:10px" onclick="completeOrderAction()">ÖDƏNİŞİ TAMAMLA</button>
+              <button class="btn-action" style="background:var(--accent); color:black; margin-top:10px" onclick="printReceiptAction()">
+                <i class="fa-solid fa-print"></i> QƏBZ ÇAP ET
+              </button>
+              <button class="btn-action" style="background:var(--primary); margin-top:10px" onclick="completeOrderAction()">
+                ÖDƏNİŞİ TAMAMLA
+              </button>
             </div>
           </div>
         </div>
@@ -195,59 +240,75 @@
 
       <!-- PURCHASE -->
       <div id="view-purchase" class="view">
-        <div style="display:grid; grid-template-columns: 350px 1fr; gap:20px; height:100%;">
+        <div style="display:grid; grid-template-columns: 360px 1fr; gap:14px; height:100%;">
           <div class="glass-window">
-            <h4>Yeni Mal Alışı</h4>
+            <h3 style="margin-bottom:10px;">Yeni Mal Alışı</h3>
             <input type="text" id="p-name" placeholder="Məhsul adı" class="glass-input">
             <input type="number" id="p-qty" placeholder="Miqdar" class="glass-input">
             <input type="number" id="p-cost" placeholder="Alış Qiyməti" class="glass-input">
             <input type="number" id="p-sell" placeholder="Satış Qiyməti" class="glass-input">
             <input type="number" id="p-min" placeholder="Minimum stok xəbərdarlığı (default: 5)" class="glass-input">
             <select id="p-pay" class="glass-input">
-              <option value="Nağd">Nağd (ödənildi)</option>
-              <option value="Kart">Kart (ödənildi)</option>
-              <option value="Köçürmə">Köçürmə (ödənildi)</option>
+              <option value="Nağd">Ödəniş: Nağd</option>
+              <option value="Kart">Ödəniş: Kart</option>
+              <option value="Köçürmə">Ödəniş: Köçürmə</option>
             </select>
             <button class="btn-action" style="background:var(--primary)" onclick="savePurchaseAction()">ANBARA VUR</button>
+            <div style="opacity:.7; font-size:12px; margin-top:8px;">
+              Qeyd: alışın totalı = miqdar × alış qiyməti. Balansdan çıxılacaq.
+            </div>
           </div>
-          <div class="glass-window" style="overflow:auto;">
-            <table class="glass-table">
-              <thead>
-                <tr><th>Tarix</th><th>Məhsul</th><th>Sayı</th><th>Alış</th><th>Ödəniş</th><th>Sil</th></tr>
-              </thead>
-              <tbody id="pur-history"></tbody>
-            </table>
+
+          <div class="glass-window" style="overflow:hidden;">
+            <div style="font-weight:900; color:var(--accent); margin-bottom:10px;">Alış Tarixçəsi</div>
+            <div style="flex:1; overflow:auto;">
+              <table class="glass-table">
+                <thead><tr><th>Tarix</th><th>Məhsul</th><th>Sayı</th><th>Alış</th><th>Ödəniş</th><th>Sil</th></tr></thead>
+                <tbody id="pur-history"></tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
 
       <!-- STOCK -->
       <div id="view-stock" class="view">
-        <div class="glass-window" style="overflow:auto;">
-          <h3>Anbar Qalıqları</h3>
-          <table class="glass-table">
-            <thead><tr><th>Məhsul</th><th>Stok</th><th>Qiymət</th></tr></thead>
-            <tbody id="stock-body"></tbody>
-          </table>
+        <div class="glass-window" style="overflow:hidden;">
+          <h3 style="margin-bottom:10px;">Anbar Qalıqları</h3>
+          <div style="flex:1; overflow:auto;">
+            <table class="glass-table">
+              <thead><tr><th>Məhsul</th><th>Stok</th><th>Satış</th></tr></thead>
+              <tbody id="stock-body"></tbody>
+            </table>
+          </div>
         </div>
       </div>
 
       <!-- EXPENSE -->
       <div id="view-expense" class="view">
-        <div class="glass-window" style="overflow:auto;">
-          <h4>Xərc Qeydi</h4>
-          <input type="text" id="ex-n" class="glass-input" placeholder="Xərcin adı">
-          <input type="number" id="ex-v" class="glass-input" placeholder="Məbləğ">
-          <select id="ex-pay" class="glass-input">
-            <option value="Nağd">Nağd (kassadan)</option>
-            <option value="Kart">Kart</option>
-            <option value="Köçürmə">Köçürmə</option>
-          </select>
-          <button onclick="saveExpenseAction()" class="btn-action" style="background:var(--danger)">XƏRCİ ƏLAVƏ ET</button>
-          <table class="glass-table" style="margin-top:20px;">
-            <thead><tr><th>Tarix</th><th>Xərc</th><th>Məbləğ</th><th>Ödəniş</th><th>Sil</th></tr></thead>
-            <tbody id="ex-history"></tbody>
-          </table>
+        <div class="glass-window" style="overflow:hidden;">
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+            <h3>Xərclər</h3>
+            <div class="badge"><i class="fa-solid fa-wallet"></i> Kassa (hesab): <b><span id="cash-lbl">0.00</span></b> AZN</div>
+          </div>
+
+          <div style="display:grid; grid-template-columns: 1fr 180px 180px; gap:10px; margin-top:12px;">
+            <input type="text" id="ex-n" class="glass-input" placeholder="Xərcin adı" style="margin-bottom:0;">
+            <input type="number" id="ex-v" class="glass-input" placeholder="Məbləğ" style="margin-bottom:0;">
+            <select id="ex-pay" class="glass-input" style="margin-bottom:0;">
+              <option value="Nağd">Nağd</option>
+              <option value="Kart">Kart</option>
+              <option value="Köçürmə">Köçürmə</option>
+            </select>
+          </div>
+          <button onclick="saveExpenseAction()" class="btn-action" style="background:var(--danger); margin-top:10px;">XƏRCİ ƏLAVƏ ET</button>
+
+          <div style="flex:1; overflow:auto; margin-top:14px;">
+            <table class="glass-table">
+              <thead><tr><th>Tarix</th><th>Xərc</th><th>Məbləğ</th><th>Ödəniş</th><th>Sil</th></tr></thead>
+              <tbody id="ex-history"></tbody>
+            </table>
+          </div>
         </div>
       </div>
 
@@ -271,11 +332,11 @@
             <button class="btn-action" style="background:rgba(255,255,255,0.1); width:220px;" onclick="printZReport()">Z ÇAP ET</button>
           </div>
 
-          <div id="rep-stats" style="display:flex; gap:15px; margin:20px 0; flex-wrap:wrap;"></div>
+          <div id="rep-stats" style="display:flex; gap:10px; margin:14px 0; flex-wrap:wrap;"></div>
 
-          <div id="z-box" style="display:none; margin-bottom:18px;">
-            <div class="glass-window" style="height:auto; padding:15px;">
-              <div style="font-weight:800; color:var(--accent); margin-bottom:10px;">Z-REPORT (Günlük bağlanış)</div>
+          <div id="z-box" style="display:none; margin-bottom:12px;">
+            <div class="glass-window" style="height:auto; padding:12px;">
+              <div style="font-weight:900; color:var(--accent); margin-bottom:8px;">Z-REPORT (Günlük bağlanış)</div>
               <div id="z-content" style="line-height:1.7;"></div>
             </div>
           </div>
@@ -294,8 +355,8 @@
   <div id="print-area"></div>
 
   <!-- INFO MODAL -->
-  <div id="info-modal" style="display:none; position:fixed; inset:0; z-index:2000; background:rgba(0,0,0,.55); backdrop-filter: blur(6px); align-items:center; justify-content:center;">
-    <div class="glass-window" style="width:min(720px,92vw); height:auto; max-height:85vh; overflow:auto; padding:18px;">
+  <div id="info-modal">
+    <div class="glass-window modal-card">
       <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px;">
         <div style="font-weight:900; color:var(--accent); font-size:16px;">
           <i class="fa-solid fa-circle-info"></i> Çek məlumatı
@@ -308,6 +369,7 @@
     </div>
   </div>
 
+  <!-- APP -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
     import {
@@ -318,6 +380,7 @@
       getAuth, onAuthStateChanged, signInWithEmailAndPassword, signInAnonymously, signOut
     } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 
+    // ✅ SƏNİN CONFIG
     const firebaseConfig = {
       apiKey: "AIzaSyDb_Td0FYgrJLWlwI6dIY_g7RVoeAb9Tpk",
       authDomain: "eqzotika-2205f.firebaseapp.com",
@@ -327,16 +390,21 @@
       appId: "1:404077205202:web:ca913cc772ae624e74ff0b"
     };
 
+    // ==== INIT ====
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
 
+    // 🔧 Filial
     const BRANCH_ID = "main_branch";
+
+    // ==== PATH HELPERS ====
     const refBranch = (...parts) => doc(db, "branches", BRANCH_ID, ...parts);
     const colBranch = (...parts) => collection(db, "branches", BRANCH_ID, ...parts);
     const refTables = refBranch("meta", "tables");
     const refSettings = refBranch("meta", "settings");
 
+    // ==== STATE ====
     const ADMIN_EMAIL_DEFAULT = "admin@eqzotika.local";
     let currentRole = "staff";
     let currentUser = null;
@@ -350,16 +418,22 @@
     let tableOrders = {};
     let activeIdx = 0;
 
+    let settingsCache = null;
+
     let unsubscribers = [];
     let clockTimer = null;
 
-    // SETTINGS CACHE (gün)
-    let settingsCache = { resetCode: "1234", businessDayISO: "", dayStatus: "open" };
-
+    // ==== DOM HELPERS ====
     const $ = (id) => document.getElementById(id);
-    const isAdmin = () => currentRole === "admin";
-    const requireAdmin = () => { if(!isAdmin()) { alert("Bu bölmə yalnız ADMIN üçündür!"); return false; } return true; };
 
+    // ==== ROLE HELPERS ====
+    const isAdmin = () => currentRole === "admin";
+    const requireAdmin = () => {
+      if (!isAdmin()) { alert("Bu bölmə yalnız ADMIN üçündür!"); return false; }
+      return true;
+    };
+
+    // ==== SAFE HELPERS ====
     const encName = (s) => encodeURIComponent(String(s));
     const decName = (s) => decodeURIComponent(String(s));
     const safeId = (s) => encodeURIComponent(String(s));
@@ -402,9 +476,15 @@
       }
     }
 
+    function normalizeBalances(b){
+      const base = {"Nağd":0,"Kart":0,"Köçürmə":0};
+      const x = { ...base, ...(b||{}) };
+      for(const k of Object.keys(base)) x[k] = Number(x[k] || 0);
+      return x;
+    }
+
     function getBusinessDayISO(){
-      const v = settingsCache?.businessDayISO;
-      return v && String(v).trim() ? String(v) : todayISO();
+      return String(settingsCache?.businessDayISO || todayISO());
     }
 
     function setBizDayUI(){
@@ -412,30 +492,16 @@
       $("bizday").innerText = `Tarix: ${iso}`;
       const st = settingsCache?.dayStatus || "open";
       $("day-status").innerText = `Gün: ${st === "open" ? "Açıq" : "Bağlı"}`;
+
+      const b = normalizeBalances(settingsCache?.balances);
+      $("bal-box").innerText =
+        `Nağd: ${b["Nağd"].toFixed(2)} | Kart: ${b["Kart"].toFixed(2)} | Köç: ${b["Köçürmə"].toFixed(2)}`;
     }
 
-    // ===== Cashflow helpers (Satış / Xərc / Alış pay type ilə) =====
-    function sumSalesByPay(arr, pay){
-      return (arr||[]).reduce((a,s)=>{
-        const p = s.payType || "Nağd";
-        const v = (s.grandTotal ?? s.revenue ?? 0);
-        return a + (p === pay ? v : 0);
-      },0);
-    }
-    function sumExpensesByPay(arr, pay){
-      return (arr||[]).reduce((a,e)=>{
-        const p = e.payType || "Nağd";
-        const v = Number(e.val||0);
-        return a + (p === pay ? v : 0);
-      },0);
-    }
-    function sumPurchasesByPay(arr, pay){
-      // alış outflow = qty * cost
-      return (arr||[]).reduce((a,pur)=>{
-        const p = pur.payType || "Nağd";
-        const v = Number(pur.total || 0) || (Number(pur.qty||0)*Number(pur.cost||0));
-        return a + (p === pay ? v : 0);
-      },0);
+    // “Kassa (hesab)” label üçün: ümumi balansların cəmi
+    function getTotalBalance(){
+      const b = normalizeBalances(settingsCache?.balances);
+      return (b["Nağd"] + b["Kart"] + b["Köçürmə"]);
     }
 
     // ==== INIT DOCS ====
@@ -448,7 +514,21 @@
       }
       const sSnap = await getDoc(refSettings);
       if(!sSnap.exists()){
-        await setDoc(refSettings, { resetCode: "1234", businessDayISO: todayISO(), dayStatus: "open" }, { merge: true });
+        await setDoc(refSettings, {
+          resetCode: "1234",
+          businessDayISO: todayISO(),
+          dayStatus: "open",
+          balances: { "Nağd": 0, "Kart": 0, "Köçürmə": 0 }
+        }, { merge: true });
+      }else{
+        // lazımi field-lər yoxdursa əlavə et
+        const d = sSnap.data() || {};
+        const patch = {};
+        if(!d.resetCode) patch.resetCode = "1234";
+        if(!d.businessDayISO) patch.businessDayISO = todayISO();
+        if(!d.dayStatus) patch.dayStatus = "open";
+        if(!d.balances) patch.balances = { "Nağd": 0, "Kart": 0, "Köçürmə": 0 };
+        if(Object.keys(patch).length) await setDoc(refSettings, patch, { merge: true });
       }
     }
 
@@ -463,15 +543,19 @@
 
       unsubscribers.push(
         onSnapshot(refSettings, (snap)=>{
-          if(!snap.exists()) return;
-          settingsCache = { ...(settingsCache||{}), ...(snap.data()||{}) };
+          settingsCache = snap.exists() ? (snap.data()||{}) : null;
           setBizDayUI();
+          const cashLbl = $("cash-lbl");
+          if(cashLbl) cashLbl.innerText = getTotalBalance().toFixed(2);
 
-          // report filter default: yalnız current business day (istifadəçi dəyişməyibsə)
+          // gün dəyişəndə default filtrlər biznes günə düşsün
           const iso = getBusinessDayISO();
-          if($("rep-from") && !$("rep-from").dataset.touched){ $("rep-from").value = iso; }
-          if($("rep-to") && !$("rep-to").dataset.touched){ $("rep-to").value = iso; }
-          if($("z-date") && !$("z-date").dataset.touched){ $("z-date").value = iso; }
+          if($("rep-from") && $("rep-to")){
+            // yalnız boşdursa doldur
+            if(!$("rep-from").value) $("rep-from").value = iso;
+            if(!$("rep-to").value) $("rep-to").value = iso;
+          }
+          if($("z-date") && !$("z-date").value) $("z-date").value = iso;
         })
       );
 
@@ -516,20 +600,15 @@
       unsubscribers.push(
         onSnapshot(query(colBranch("sales"), orderBy("id","desc")), (snap) => {
           sales = snap.docs.map(d => d.data());
-          if(isAdmin()){
-            if($("view-report").classList.contains("active")) renderReport();
-            if($("view-expense").classList.contains("active")) renderExpenses();
-          }
+          if(isAdmin() && $("view-report").classList.contains("active")) renderReport();
         })
       );
 
       unsubscribers.push(
         onSnapshot(query(colBranch("expenses"), orderBy("id","desc")), (snap) => {
           expenses = snap.docs.map(d => d.data());
-          if(isAdmin()){
-            if($("view-report").classList.contains("active")) renderReport();
-            if($("view-expense").classList.contains("active")) renderExpenses();
-          }
+          if(isAdmin() && $("view-expense").classList.contains("active")) renderExpenses();
+          if(isAdmin() && $("view-report").classList.contains("active")) renderReport();
         })
       );
     }
@@ -573,7 +652,13 @@
       const grid = $("menu-grid");
       if(!grid) return;
 
-      grid.innerHTML = Object.entries(inventory).map(([n, d]) => {
+      const entries = Object.entries(inventory);
+      if(!entries.length){
+        grid.innerHTML = `<div style="opacity:.7; padding:10px;">Menyu boşdur. Admin “Alış” bölməsindən məhsul əlavə etsin.</div>`;
+        return;
+      }
+
+      grid.innerHTML = entries.map(([n, d]) => {
         const isOut = Number(d.qty||0) <= 0;
         const min = (d.minQty==null || d.minQty==="") ? 5 : Number(d.minQty);
         const badge = (Number(d.qty||0) <= min && Number(d.qty||0) > 0) ? "⚠" : "";
@@ -602,20 +687,24 @@
 
       const tName = tables[activeIdx];
       const list = tableOrders[tName] || [];
-      list.forEach(i => {
-        container.innerHTML += `
-          <div class="order-row">
-            <span>${i.name}</span>
-            <div class="qty-controls">
-              <button class="qty-btn" onclick="updateOrderQty('${encName(i.name)}',-1)">-</button>
-              <span>${i.qty}</span>
-              <button class="qty-btn" onclick="updateOrderQty('${encName(i.name)}',1)">+</button>
+      if(!list.length){
+        container.innerHTML = `<div style="opacity:.7; padding:10px;">Sifariş yoxdur</div>`;
+      }else{
+        list.forEach(i => {
+          container.innerHTML += `
+            <div class="order-row">
+              <span class="order-name">${i.name}</span>
+              <div class="qty-controls">
+                <button class="qty-btn" onclick="updateOrderQty('${encName(i.name)}',-1)">-</button>
+                <span style="min-width:22px; text-align:center; font-weight:900;">${i.qty}</span>
+                <button class="qty-btn" onclick="updateOrderQty('${encName(i.name)}',1)">+</button>
+              </div>
+              <b style="min-width:72px; text-align:right;">${(Number(i.price||0)*Number(i.qty||0)).toFixed(2)}</b>
+              <button class="trash-btn" onclick="removeOrderItem('${encName(i.name)}')"><i class="fa-solid fa-trash"></i></button>
             </div>
-            <b>${(Number(i.price||0)*Number(i.qty||0)).toFixed(2)}</b>
-            <button class="trash-btn" onclick="removeOrderItem('${encName(i.name)}')"><i class="fa-solid fa-trash"></i></button>
-          </div>
-        `;
-      });
+          `;
+        });
+      }
 
       $("order-title").innerText = tName.toUpperCase();
     }
@@ -625,11 +714,11 @@
       if(!ph) return;
       ph.innerHTML = (purchases||[]).map(p => `
         <tr>
-          <td>${p.date || ""}</td>
+          <td>${p.dateISO || p.date || ""}</td>
           <td>${p.name || ""}</td>
           <td>${Number(p.qty||0)}</td>
           <td>${Number(p.cost||0).toFixed(2)}</td>
-          <td>${p.payType || "Nağd"}</td>
+          <td>${p.payType || "-"}</td>
           <td><i class="fa-solid fa-trash" style="cursor:pointer" onclick="delPur(${p.id})"></i></td>
         </tr>
       `).join("");
@@ -653,13 +742,16 @@
 
       tbody.innerHTML = (expenses||[]).map(e => `
         <tr>
-          <td>${e.date || ""}</td>
+          <td>${e.dateISO || e.date || ""}</td>
           <td>${e.name || ""}</td>
           <td>${Number(e.val||0).toFixed(2)}</td>
-          <td>${e.payType || "Nağd"}</td>
+          <td>${e.payType || "-"}</td>
           <td><i class="fa-solid fa-trash" style="cursor:pointer" onclick="deleteExpense(${e.id})"></i></td>
         </tr>
       `).join("");
+
+      const cashLbl = $("cash-lbl");
+      if(cashLbl) cashLbl.innerText = getTotalBalance().toFixed(2);
     }
 
     function fillReportTablesDropdown(){
@@ -694,41 +786,22 @@
         .map(e => ({...e, dateISO: normalizeISO(e)}))
         .filter(e => inRange(e.dateISO));
 
-      const filteredPur = (purchases||[])
-        .map(p => ({...p, dateISO: p.dateISO || normalizeISO(p)}))
-        .filter(p => inRange(p.dateISO));
-
       const gross  = filteredSales.reduce((a,b)=>a+(b.grandTotal ?? b.revenue ?? 0),0);
       const cst    = filteredSales.reduce((a,b)=>a+(b.cost||0),0);
-      const exp    = filteredExp.reduce((a,b)=>a+(b.val||0),0);
-      const profit = gross - cst - exp; // ✅ əvvəlki kimi: maya(satışdan) + xərc
+      const expSum = filteredExp.reduce((a,b)=>a+(b.val||0),0);
+      const profit = gross - cst - expSum;
 
-      // ✅ CASH/KART balance: satış - (xərc + alış)
-      const cashSales = sumSalesByPay(filteredSales, "Nağd");
-      const cardSales = sumSalesByPay(filteredSales, "Kart");
-      const bankSales = sumSalesByPay(filteredSales, "Köçürmə");
-
-      const cashExp = sumExpensesByPay(filteredExp, "Nağd");
-      const cardExp = sumExpensesByPay(filteredExp, "Kart");
-      const bankExp = sumExpensesByPay(filteredExp, "Köçürmə");
-
-      const cashPur = sumPurchasesByPay(filteredPur, "Nağd");
-      const cardPur = sumPurchasesByPay(filteredPur, "Kart");
-      const bankPur = sumPurchasesByPay(filteredPur, "Köçürmə");
-
-      const cashBalance = cashSales - cashExp - cashPur;
-      const cardBalance = cardSales - cardExp - cardPur;
-      const bankBalance = bankSales - bankExp - bankPur;
+      const bal = normalizeBalances(settingsCache?.balances);
 
       $("rep-stats").innerHTML =
-        `<div class="glass-window" style="flex:1; height:auto; padding:15px;">Ümumi Satış: <b>${gross.toFixed(2)}</b></div>` +
-        `<div class="glass-window" style="flex:1; height:auto; padding:15px;">Xalis Mənfəət: <b>${profit.toFixed(2)}</b></div>` +
-        `<div class="glass-window" style="flex:1; height:auto; padding:15px;">Maya: <b>${cst.toFixed(2)}</b></div>` +
-        `<div class="glass-window" style="flex:1; height:auto; padding:15px;">Xərc: <b>${exp.toFixed(2)}</b></div>` +
-        `<div class="glass-window" style="flex:1; height:auto; padding:15px;">Nağd Balans: <b>${cashBalance.toFixed(2)}</b></div>` +
-        `<div class="glass-window" style="flex:1; height:auto; padding:15px;">Kart Balans: <b>${cardBalance.toFixed(2)}</b></div>` +
-        `<div class="glass-window" style="flex:1; height:auto; padding:15px;">Köçürmə Balans: <b>${bankBalance.toFixed(2)}</b></div>`;
+        `<div class="glass-window" style="flex:1; height:auto; padding:12px;">Ümumi Satış: <b>${gross.toFixed(2)}</b></div>` +
+        `<div class="glass-window" style="flex:1; height:auto; padding:12px;">Xalis Mənfəət: <b>${profit.toFixed(2)}</b></div>` +
+        `<div class="glass-window" style="flex:1; height:auto; padding:12px;">Maya: <b>${cst.toFixed(2)}</b></div>` +
+        `<div class="glass-window" style="flex:1; height:auto; padding:12px;">Xərc: <b>${expSum.toFixed(2)}</b></div>` +
+        `<div class="glass-window" style="flex:1; height:auto; padding:12px;">Kassa (Nağd): <b>${bal["Nağd"].toFixed(2)}</b></div>` +
+        `<div class="glass-window" style="flex:1; height:auto; padding:12px;">Kart Balansı: <b>${bal["Kart"].toFixed(2)}</b></div>`;
 
+      // INFO modal üçün filtr aralığını saxla
       window.__repFilter = { from, to, tableFilter };
 
       const h = $("rep-history");
@@ -736,8 +809,7 @@
 
       const all = [
         ...filteredSales.map(x => ({...x, __type:"sale"})),
-        ...filteredExp.map(x => ({...x, __type:"exp"})),
-        ...filteredPur.map(x => ({...x, __type:"pur"})),
+        ...filteredExp.map(x => ({...x, __type:"exp"}))
       ].sort((a,b)=> (b.id||0) - (a.id||0));
 
       all.forEach(x => {
@@ -761,31 +833,20 @@
                   <i class="fa-solid fa-circle-info"></i>
                 </button>
               </td>
-              <td>${x.date || ""}</td>
-              <td style="color:#10b981">Satış</td>
+              <td>${x.dateISO || x.date || ""}</td>
+              <td style="color:#10b981; font-weight:900;">Satış</td>
               <td>${det}</td>
               <td>${Number(x.grandTotal ?? x.revenue ?? 0).toFixed(2)}</td>
             </tr>
           `;
-        } else if(x.__type === "exp") {
-          h.innerHTML += `
-            <tr>
-              <td></td>
-              <td>${x.date || ""}</td>
-              <td style="color:#ef4444">Xərc</td>
-              <td>${x.name || ""} | ${x.payType || "Nağd"}</td>
-              <td>${(-Number(x.val||0)).toFixed(2)}</td>
-            </tr>
-          `;
         } else {
-          const total = Number(x.total||0) || (Number(x.qty||0)*Number(x.cost||0));
           h.innerHTML += `
             <tr>
               <td></td>
-              <td>${x.date || ""}</td>
-              <td style="color:#fbbf24">Alış</td>
-              <td>${x.name || ""} | ${Number(x.qty||0)} əd | ${x.payType || "Nağd"}</td>
-              <td>${(-total).toFixed(2)}</td>
+              <td>${x.dateISO || x.date || ""}</td>
+              <td style="color:#ef4444; font-weight:900;">Xərc</td>
+              <td>${x.name || ""} | Ödəniş: ${(x.payType || "-")}</td>
+              <td>${(-Number(x.val||0)).toFixed(2)}</td>
             </tr>
           `;
         }
@@ -793,10 +854,8 @@
     }
 
     function closeInfoModal(){
-      const m = $("info-modal");
-      const c = $("info-content");
-      if(c) c.innerHTML = "";
-      if(m) m.style.display = "none";
+      $("info-content").innerHTML = "";
+      $("info-modal").style.display = "none";
     }
 
     function openSaleInfo(saleId){
@@ -827,9 +886,9 @@
       const itemsHtml = items.length
         ? items.map(i => `
             <div style="display:flex; justify-content:space-between; gap:10px; padding:8px 10px; border:1px solid rgba(255,255,255,0.08); border-radius:12px; margin-bottom:8px;">
-              <div style="font-weight:700;">${i.name}</div>
-              <div style="opacity:.9;">x${Number(i.qty||0)}</div>
-              <div style="font-weight:800; color:var(--accent);">${(Number(i.price||0)*Number(i.qty||0)).toFixed(2)} AZN</div>
+              <div style="font-weight:900; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${i.name}</div>
+              <div style="opacity:.9; font-weight:900;">x${Number(i.qty||0)}</div>
+              <div style="font-weight:900; color:var(--accent);">${(Number(i.price||0)*Number(i.qty||0)).toFixed(2)} AZN</div>
             </div>
           `).join("")
         : `<div style="opacity:.8;">Sifariş detali yoxdur</div>`;
@@ -847,7 +906,7 @@
           </div>
           <div class="glass-window" style="height:auto; padding:12px; flex:1;">
             <div style="opacity:.8; font-size:12px;">Tarix / Ödəniş</div>
-            <div style="font-weight:800;">${sale.date || "-"} — ${sale.payType || "Nağd"}</div>
+            <div style="font-weight:900;">${sale.dateISO || sale.date || "-"} — ${sale.payType || "Nağd"}</div>
             <div style="opacity:.85; margin-top:6px;">Vuran: <b>${who}</b></div>
           </div>
           <div class="glass-window" style="height:auto; padding:12px; flex:1;">
@@ -875,10 +934,8 @@
       if(!requireAdmin()) return;
       const iso = $("z-date").value || getBusinessDayISO();
 
-      const normalizeISO = (x) => x.dateISO || toISOFromLocalDateString(x.date) || "";
-      const daySales = (sales||[]).map(s => ({...s, dateISO: normalizeISO(s)})).filter(s => s.dateISO === iso);
-      const dayExp   = (expenses||[]).map(e => ({...e, dateISO: normalizeISO(e)})).filter(e => e.dateISO === iso);
-      const dayPur   = (purchases||[]).map(p => ({...p, dateISO: p.dateISO || normalizeISO(p)})).filter(p => p.dateISO === iso);
+      const daySales = (sales||[]).map(s => ({...s, dateISO: s.dateISO || toISOFromLocalDateString(s.date) || ""})).filter(s => s.dateISO === iso);
+      const dayExp   = (expenses||[]).map(e => ({...e, dateISO: e.dateISO || toISOFromLocalDateString(e.date) || ""})).filter(e => e.dateISO === iso);
 
       const byPay = {};
       let gross = 0, cost = 0, disc = 0, svc = 0;
@@ -894,12 +951,7 @@
       });
 
       const expSum = dayExp.reduce((a,b)=>a+(b.val||0),0);
-      const purSum = dayPur.reduce((a,p)=> a + (Number(p.total||0) || (Number(p.qty||0)*Number(p.cost||0))), 0);
-
       const profit = gross - cost - expSum;
-
-      const cashBalance = sumSalesByPay(daySales,"Nağd") - sumExpensesByPay(dayExp,"Nağd") - sumPurchasesByPay(dayPur,"Nağd");
-      const cardBalance = sumSalesByPay(daySales,"Kart") - sumExpensesByPay(dayExp,"Kart") - sumPurchasesByPay(dayPur,"Kart");
 
       const payLines = Object.keys(byPay).length
         ? Object.entries(byPay).map(([k,v]) => `${k}: <b>${v.toFixed(2)}</b> AZN`).join("<br>")
@@ -913,10 +965,7 @@
         <div><b>Maya:</b> ${cost.toFixed(2)} AZN</div>
         <div style="margin-top:8px;"><b>Ödəniş növünə görə:</b><br>${payLines}</div>
         <div style="margin-top:8px;"><b>Xərclər:</b> ${expSum.toFixed(2)} AZN</div>
-        <div><b>Alışlar:</b> ${purSum.toFixed(2)} AZN</div>
         <div><b>Xalis mənfəət:</b> ${profit.toFixed(2)} AZN</div>
-        <div style="margin-top:8px;"><b>Nağd balans:</b> ${cashBalance.toFixed(2)} AZN</div>
-        <div><b>Kart balans:</b> ${cardBalance.toFixed(2)} AZN</div>
         <div style="margin-top:8px; opacity:.9;"><b>Çek sayı:</b> ${daySales.length}</div>
       `;
 
@@ -958,8 +1007,13 @@
       const totals = recalcTotals();
       const payType = $("pay-type")?.value || "Nağd";
 
-      let html = `<div style="text-align:center"><h3>KEEPER PRO</h3><p>Masa: ${tName}</p><p>Tarix: ${getBusinessDayISO()}</p><p>Ödəniş: ${payType}</p><hr style="border:1px dashed #000">`;
-      ord.forEach(i => html += `<div style="display:flex; justify-content:space-between; margin:5px 0;"><span>${i.name} (x${i.qty})</span><span>${(Number(i.price||0)*Number(i.qty||0)).toFixed(2)} AZN</span></div>`);
+      let html = `<div style="text-align:center"><h3>KEEPER PRO</h3>
+        <p>Masa: ${tName}</p><p>Ödəniş: ${payType}</p><p>Tarix: ${getBusinessDayISO()}</p>
+        <hr style="border:1px dashed #000">`;
+
+      ord.forEach(i => html += `<div style="display:flex; justify-content:space-between; margin:5px 0;">
+        <span>${i.name} (x${i.qty})</span><span>${(Number(i.price||0)*Number(i.qty||0)).toFixed(2)} AZN</span></div>`);
+
       html += `<hr style="border:1px dashed #000">`;
       html += `<div style="display:flex; justify-content:space-between;"><span>Ara cəmi</span><span>${totals.sub.toFixed(2)}</span></div>`;
       html += `<div style="display:flex; justify-content:space-between;"><span>Endirim (${totals.discPct}%)</span><span>${totals.discAmt.toFixed(2)}</span></div>`;
@@ -1015,7 +1069,6 @@
 
     async function addItemToOrder(encodedName){
       const n = decName(encodedName);
-
       if(!tables.length) return alert("Masa yoxdur. Admin masaları əlavə etməlidir.");
       if(activeIdx < 0 || activeIdx >= tables.length) activeIdx = 0;
 
@@ -1032,7 +1085,7 @@
         order.push({ name: n, qty: 1, price: Number(inventory[n].sell||0), cost: Number(inventory[n].cost||0) });
       }
 
-      await writeTablesState();
+      await writeTablesState(); // ✅ staff yazanda da sağda dərhal görünür (realtime)
     }
 
     async function updateOrderQty(encodedName, delta){
@@ -1064,6 +1117,7 @@
       await writeTablesState();
     }
 
+    // ===== PURCHASE (admin) + balance (-) =====
     async function savePurchaseAction(){
       if(!requireAdmin()) return;
 
@@ -1084,11 +1138,11 @@
       inv.cost = c;
       inv.minQty = isNaN(m) ? (inv.minQty ?? 5) : m;
 
+      // inventory update (merge)
       await upsertInventoryItem(n, inv);
 
       const id = Date.now();
-      const total = q * c;
-
+      const total = Number(q) * Number(c);
       const purObj = {
         id,
         date: new Date().toLocaleDateString(),
@@ -1096,16 +1150,32 @@
         name: n,
         qty: q,
         cost: c,
+        sell: s,
         total,
         payType
       };
-      await setDoc(refBranch("purchases", String(id)), purObj, { merge: true });
+
+      try{
+        await runTransaction(db, async (tx)=>{
+          tx.set(refBranch("purchases", String(id)), purObj, { merge: true });
+
+          const setSnap = await tx.get(refSettings);
+          const setData = setSnap.exists() ? (setSnap.data()||{}) : {};
+          const bal = normalizeBalances(setData.balances);
+          bal[payType] = Number(bal[payType]||0) - Number(total||0); // ✅ alış balansdan çıxır
+          tx.set(refSettings, { balances: bal }, { merge: true });
+        });
+      }catch(err){
+        alert(err?.message || "Alış yazılmadı (balans)!");
+        return;
+      }
 
       $("p-name").value="";
       $("p-qty").value="";
       $("p-cost").value="";
       $("p-sell").value="";
       $("p-min").value="";
+      $("p-pay").value="Nağd";
 
       alert("Mal anbara vuruldu!");
       notifyLowStock();
@@ -1113,7 +1183,6 @@
 
     async function delPur(id){
       if(!requireAdmin()) return;
-
       const pRef = refBranch("purchases", String(id));
 
       try{
@@ -1122,6 +1191,7 @@
           if(!pSnap.exists()) throw new Error("Alış tapılmadı!");
           const p = pSnap.data();
 
+          // stock geri alınsın
           const invName = p.name;
           const invRef = refBranch("inventory", safeId(invName));
           const invSnap = await tx.get(invRef);
@@ -1133,12 +1203,22 @@
 
           tx.update(invRef, { qty: newQty });
           tx.delete(pRef);
+
+          // balansı geri qaytar (+)
+          const setSnap = await tx.get(refSettings);
+          const setData = setSnap.exists() ? (setSnap.data()||{}) : {};
+          const bal = normalizeBalances(setData.balances);
+          const payType = p.payType || "Nağd";
+          const total = Number(p.total || (Number(p.qty||0)*Number(p.cost||0)));
+          bal[payType] = Number(bal[payType]||0) + total; // alış silinirsə pul geri
+          tx.set(refSettings, { balances: bal }, { merge: true });
         });
       } catch(err){
         alert(err?.message || "Xəta baş verdi!");
       }
     }
 
+    // ===== COMPLETE ORDER (admin + staff) + stock (-) + balance (+) =====
     async function completeOrderAction(){
       const tName = tables[activeIdx];
       const order = tableOrders[tName] || [];
@@ -1152,8 +1232,13 @@
 
       try{
         await runTransaction(db, async (tx) => {
+          // READS
           const tablesSnap = await tx.get(refTables);
           if(!tablesSnap.exists()) throw new Error("Tables state tapılmadı!");
+
+          const setSnap = await tx.get(refSettings);
+          const setData = setSnap.exists() ? (setSnap.data()||{}) : {};
+          const bal = normalizeBalances(setData.balances);
 
           const invSnaps = [];
           for(const it of order){
@@ -1163,6 +1248,7 @@
             invSnaps.push({ it, invRef, inv: invSnap.data() });
           }
 
+          // CALC
           let cst = 0;
           for(const x of invSnaps){
             const have = Number(x.inv.qty || 0);
@@ -1171,16 +1257,23 @@
             cst += Number(x.inv.cost || 0) * need;
           }
 
+          // WRITES: stock update
           for(const x of invSnaps){
             const have = Number(x.inv.qty || 0);
             const need = Number(x.it.qty || 0);
             tx.update(x.invRef, { qty: have - need });
           }
 
+          // WRITES: balances (sale +)
+          bal[payType] = Number(bal[payType] || 0) + Number(totals.grand || 0);
+          tx.set(refSettings, { balances: bal }, { merge: true });
+
+          // WHO
           const whoRole = isAdmin() ? "admin" : "staff";
           const whoUid = currentUser?.uid || null;
           const whoEmail = currentUser?.email || null;
 
+          // WRITES: sale doc
           const saleObj = {
             id: saleId,
             date: new Date().toLocaleDateString(),
@@ -1202,6 +1295,7 @@
           };
           tx.set(saleRef, saleObj, { merge: true });
 
+          // WRITES: clear table order
           const d = tablesSnap.data() || {};
           const tbl = Array.isArray(d.tables) && d.tables.length ? d.tables : tables;
           const ords = d.tableOrders || {};
@@ -1221,28 +1315,98 @@
       }
     }
 
+    // ===== EXPENSE (admin) + balance (-) =====
     async function saveExpenseAction(){
       if(!requireAdmin()) return;
 
       const n = $("ex-n").value.trim();
       const v = parseFloat($("ex-v").value);
       const payType = $("ex-pay").value || "Nağd";
-
       if(!n || isNaN(v) || v<=0) return alert("Məlumatları düzgün daxil et!");
 
       const id = Date.now();
       const obj = { id, date: new Date().toLocaleDateString(), dateISO: getBusinessDayISO(), name: n, val: v, payType };
-      await setDoc(refBranch("expenses", String(id)), obj, { merge: true });
 
-      $("ex-n").value = "";
-      $("ex-v").value = "";
+      try{
+        await runTransaction(db, async (tx)=>{
+          tx.set(refBranch("expenses", String(id)), obj, { merge: true });
+
+          const setSnap = await tx.get(refSettings);
+          const setData = setSnap.exists() ? (setSnap.data()||{}) : {};
+          const bal = normalizeBalances(setData.balances);
+
+          bal[payType] = Number(bal[payType] || 0) - Number(v || 0); // ✅ xərc balansdan çıxır
+          tx.set(refSettings, { balances: bal }, { merge: true });
+        });
+
+        $("ex-n").value = "";
+        $("ex-v").value = "";
+        $("ex-pay").value = "Nağd";
+      }catch(err){
+        alert(err?.message || "Xərc yazılmadı!");
+      }
     }
 
     async function deleteExpense(id){
       if(!requireAdmin()) return;
-      await deleteDoc(refBranch("expenses", String(id)));
+      const eRef = refBranch("expenses", String(id));
+
+      try{
+        await runTransaction(db, async (tx)=>{
+          const eSnap = await tx.get(eRef);
+          if(!eSnap.exists()) throw new Error("Xərc tapılmadı!");
+          const e = eSnap.data();
+
+          tx.delete(eRef);
+
+          const setSnap = await tx.get(refSettings);
+          const setData = setSnap.exists() ? (setSnap.data()||{}) : {};
+          const bal = normalizeBalances(setData.balances);
+
+          const payType = e.payType || "Nağd";
+          bal[payType] = Number(bal[payType]||0) + Number(e.val||0); // silinirsə geri qaytar
+          tx.set(refSettings, { balances: bal }, { merge: true });
+        });
+      }catch(err){
+        alert(err?.message || "Xəta!");
+      }
     }
 
+    // ===== DAY OPEN/CLOSE (admin) =====
+    async function openDayPrompt(){
+      if(!requireAdmin()) return;
+      const iso = prompt("Yeni günü aç (YYYY-MM-DD). Boş buraxsan bu gün açılacaq:", todayISO());
+      if(iso === null) return;
+      const newISO = String(iso || todayISO()).trim();
+      if(!newISO) return alert("Tarix boş ola bilməz!");
+
+      try{
+        await setDoc(refSettings, { businessDayISO: newISO, dayStatus: "open" }, { merge: true });
+        // default filtrlər yeni günə düşsün (yalnız açıq olanda)
+        $("rep-from").value = newISO;
+        $("rep-to").value = newISO;
+        $("z-date").value = newISO;
+        alert("Gün açıldı: " + newISO);
+      }catch(e){
+        alert("Gün açılmadı!");
+      }
+    }
+
+    async function closeDayPrompt(){
+      if(!requireAdmin()) return;
+      const iso = getBusinessDayISO();
+      const ok = confirm(`${iso} gününü bağlamaq istəyirsən? (Bağlananda default filtr sabahkı günə keçə bilər.)`);
+      if(!ok) return;
+
+      try{
+        await setDoc(refSettings, { dayStatus: "closed" }, { merge: true });
+        alert("Gün bağlandı: " + iso + "\nSabah açmaq üçün: “Günü aç” düyməsini bas.");
+      }catch(e){
+        alert("Gün bağlanmadı!");
+      }
+    }
+
+    // ===== RESET CODE / FULL WIPE =====
     async function setResetCodePrompt(){
       if(!requireAdmin()) return;
 
@@ -1276,15 +1440,26 @@
 
       try{
         const batch = writeBatch(db);
+
         const cols = ["inventory","purchases","sales","expenses"];
         for(const c of cols){
           const snap = await getDocs(colBranch(c));
           snap.forEach(d => batch.delete(d.ref));
         }
+
         const newTables = ["Masa 1","Masa 2","Masa 3"];
         const newOrders = {};
         newTables.forEach(t => newOrders[t] = []);
         batch.set(refTables, { tables: newTables, tableOrders: newOrders }, { merge: false });
+
+        // ✅ balances sıfırlansın?
+        // Sən istəsən sıfırlansın. Burda sıfırlayıram:
+        batch.set(refSettings, {
+          balances: {"Nağd":0,"Kart":0,"Köçürmə":0},
+          businessDayISO: todayISO(),
+          dayStatus: "open"
+        }, { merge: true });
+
         await batch.commit();
 
         tables = newTables;
@@ -1297,40 +1472,13 @@
       }
     }
 
-    // ===== GÜN AÇ/BAĞLA =====
-    async function openDayPrompt(){
-      if(!requireAdmin()) return;
-      const def = todayISO();
-      const iso = prompt("Hansı günü AÇIRSAN? (YYYY-MM-DD)", def);
-      if(iso === null) return;
-      const v = String(iso).trim();
-      if(!/^\d{4}-\d{2}-\d{2}$/.test(v)) return alert("Format səhvdir. Məs: 2025-12-25");
-      await setDoc(refSettings, { businessDayISO: v, dayStatus: "open", openedAt: Date.now() }, { merge: true });
-
-      // filterləri də həmin günə çək
-      if($("rep-from")) { $("rep-from").value = v; $("rep-from").dataset.touched = ""; }
-      if($("rep-to")) { $("rep-to").value = v; $("rep-to").dataset.touched = ""; }
-      if($("z-date")) { $("z-date").value = v; $("z-date").dataset.touched = ""; }
-
-      alert("Gün açıldı: " + v);
-    }
-
-    async function closeDayAction(){
-      if(!requireAdmin()) return;
-      const iso = getBusinessDayISO();
-      const ok = prompt(`Günü BAĞLAMAQ üçün "BAGLA" yaz. (Gün: ${iso})`);
-      if(ok === null) return;
-      if(String(ok).trim().toUpperCase() !== "BAGLA") return alert("Ləğv edildi.");
-      await setDoc(refSettings, { dayStatus: "closed", closedAt: Date.now() }, { merge: true });
-      alert("Gün bağlandı: " + iso);
-    }
-
     // ==== LOGIN / NAV ====
     function promptAdmin(){
       $("role-btns").style.display="none";
       $("admin-pass-container").style.display="block";
       $("admin-email").value = ADMIN_EMAIL_DEFAULT;
       $("admin-password").value = "";
+      $("admin-email").focus();
     }
     function cancelAdmin(){
       $("admin-pass-container").style.display="none";
@@ -1342,6 +1490,7 @@
       const email = $("admin-email").value.trim();
       const pass = $("admin-password").value;
       if(!email || !pass) return alert("Email və parol yaz!");
+
       try{
         const cred = await signInWithEmailAndPassword(auth, email, pass);
         currentUser = cred.user;
@@ -1364,11 +1513,12 @@
       }
 
       $("login-overlay").style.display="none";
+
       document.querySelectorAll(".admin-only").forEach(el => {
-        el.style.display = (currentRole === "admin" ? "flex" : "none");
+        el.style.display = (currentRole === "admin" ? "inline-flex" : "none");
       });
 
-      // təhlükəsizlik: hər login-də POS-a qaytar
+      // təhlükəsizlik: hər login-də POS-a qaytar (admin çıxıb staff girəndə report açılmasın)
       const firstNav = document.querySelector(".nav-item");
       if(firstNav) switchTab("pos", firstNav);
 
@@ -1378,11 +1528,13 @@
     async function logoutAction(){
       stopRealtime();
       if(clockTimer) { clearInterval(clockTimer); clockTimer = null; }
+
       try{ await signOut(auth); }catch(e){}
 
       $("login-overlay").style.display="flex";
       cancelAdmin();
 
+      // ✅ çıxışda inputlar təmizlənsin
       $("admin-email").value = "";
       $("admin-password").value = "";
 
@@ -1399,20 +1551,10 @@
       await ensureInitDocs();
       startRealtime();
 
-      // input touch tracking (istifadəçi dəyişəndə default override olmasın)
-      ["rep-from","rep-to","z-date"].forEach(id=>{
-        const el = $(id);
-        if(el){
-          el.addEventListener("input", ()=> el.dataset.touched="1");
-        }
-      });
-
       const iso = getBusinessDayISO();
-      if($("rep-from") && !$("rep-from").dataset.touched) $("rep-from").value = iso;
-      if($("rep-to") && !$("rep-to").dataset.touched) $("rep-to").value = iso;
-      if($("z-date") && !$("z-date").dataset.touched) $("z-date").value = iso;
-
-      setBizDayUI();
+      if($("rep-from") && !$("rep-from").value) $("rep-from").value = iso;
+      if($("rep-to") && !$("rep-to").value) $("rep-to").value = iso;
+      if($("z-date") && !$("z-date").value) $("z-date").value = iso;
 
       if(clockTimer) clearInterval(clockTimer);
       clockTimer = setInterval(() => {
@@ -1493,7 +1635,7 @@
     window.closeInfoModal = closeInfoModal;
 
     window.openDayPrompt = openDayPrompt;
-    window.closeDayAction = closeDayAction;
+    window.closeDayPrompt = closeDayPrompt;
   </script>
 </body>
 </html>
