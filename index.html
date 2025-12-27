@@ -30,11 +30,11 @@
     /* MAIN */
     .main-content{flex-grow:1;display:flex;flex-direction:column;overflow:hidden;}
     .header{min-height:80px;padding:10px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid var(--glass-border);}
-    .header-left{display:flex;flex-direction:column;gap:4px;}
-    .header-title{font-size:18px;font-weight:800;}
-    .header-sub{font-size:12px;opacity:.75;display:flex;gap:10px;flex-wrap:wrap;}
+    .header-left{display:flex;flex-direction:column;gap:6px;}
+    .header-title{font-size:18px;font-weight:900;}
+    .header-sub{font-size:12px;opacity:.85;display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
     .badge{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.10);padding:6px 10px;border-radius:999px;}
-    .time-box{background:rgba(16,185,129,.1);padding:10px 16px;border-radius:14px;border:1px solid rgba(16,185,129,.2);font-weight:800;color:var(--primary);white-space:nowrap;}
+    .time-box{background:rgba(16,185,129,.1);padding:10px 16px;border-radius:14px;border:1px solid rgba(16,185,129,.2);font-weight:900;color:var(--primary);white-space:nowrap;}
     .content-area{padding:14px;flex-grow:1;overflow:hidden;}
     .view{display:none;height:100%;}
     .view.active{display:block;}
@@ -65,10 +65,11 @@
     select.glass-input option{color:#111;}
     .btn-action{padding:14px;border:none;border-radius:16px;color:#fff;font-weight:900;cursor:pointer;width:100%;transition:.2s;user-select:none;}
     .btn-action:active{transform:scale(.99);}
+    .btn-mini{padding:8px 10px;border:none;border-radius:12px;font-weight:900;cursor:pointer;background:rgba(255,255,255,.10);color:#fff;}
+    .btn-mini:active{transform:scale(.99);}
     .glass-table{width:100%;border-collapse:collapse;}
     .glass-table th{text-align:left;padding:12px;color:var(--accent);border-bottom:2px solid var(--glass-border);}
     .glass-table td{padding:12px;border-bottom:1px solid var(--glass-border);vertical-align:top;}
-    .row-actions{display:flex;gap:8px;align-items:center;}
 
     /* PRINT */
     @media print{
@@ -161,13 +162,13 @@
           <span class="badge"><i class="fa-regular fa-calendar"></i> <span id="bizday">Tarix: -</span></span>
           <span class="badge"><i class="fa-solid fa-circle"></i> <span id="day-status">Gün: -</span></span>
           <span class="badge"><i class="fa-solid fa-coins"></i> <span id="bal-box">Nağd: 0.00 | Kart: 0.00 | Köç: 0.00</span></span>
-          <span class="badge admin-only" style="gap:10px;">
-            <button class="btn-action" style="width:auto;padding:8px 10px;border-radius:12px;background:rgba(255,255,255,.10);" onclick="openDayPrompt()">
-              <i class="fa-solid fa-door-open"></i> Günü aç
-            </button>
-            <button class="btn-action" style="width:auto;padding:8px 10px;border-radius:12px;background:rgba(255,255,255,.10);" onclick="closeDayPrompt()">
-              <i class="fa-solid fa-door-closed"></i> Günü bağla
-            </button>
+
+          <!-- DAY + BALANCE CONTROLS -->
+          <span class="badge admin-only" style="gap:8px;">
+            <button class="btn-mini" onclick="openDayPrompt()"><i class="fa-solid fa-door-open"></i> Günü aç</button>
+            <button class="btn-mini" onclick="closeDayPrompt()"><i class="fa-solid fa-door-closed"></i> Günü bağla</button>
+            <button class="btn-mini" onclick="depositBalancePrompt()"><i class="fa-solid fa-plus"></i> Balans əlavə et</button>
+            <button class="btn-mini" onclick="withdrawBalancePrompt()"><i class="fa-solid fa-minus"></i> Balans çıxar</button>
           </span>
         </div>
       </div>
@@ -287,10 +288,7 @@
       <!-- EXPENSE -->
       <div id="view-expense" class="view">
         <div class="glass-window" style="overflow:hidden;">
-          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
-            <h3>Xərclər</h3>
-            <div class="badge"><i class="fa-solid fa-wallet"></i> Kassa (hesab): <b><span id="cash-lbl">0.00</span></b> AZN</div>
-          </div>
+          <h3>Xərclər</h3>
 
           <div style="display:grid; grid-template-columns: 1fr 180px 180px; gap:10px; margin-top:12px;">
             <input type="text" id="ex-n" class="glass-input" placeholder="Xərcin adı" style="margin-bottom:0;">
@@ -390,7 +388,6 @@
       appId: "1:404077205202:web:ca913cc772ae624e74ff0b"
     };
 
-    // ==== INIT ====
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
@@ -398,13 +395,13 @@
     // 🔧 Filial
     const BRANCH_ID = "main_branch";
 
-    // ==== PATH HELPERS ====
+    // PATH HELPERS
     const refBranch = (...parts) => doc(db, "branches", BRANCH_ID, ...parts);
     const colBranch = (...parts) => collection(db, "branches", BRANCH_ID, ...parts);
     const refTables = refBranch("meta", "tables");
     const refSettings = refBranch("meta", "settings");
 
-    // ==== STATE ====
+    // STATE
     const ADMIN_EMAIL_DEFAULT = "admin@eqzotika.local";
     let currentRole = "staff";
     let currentUser = null;
@@ -423,17 +420,14 @@
     let unsubscribers = [];
     let clockTimer = null;
 
-    // ==== DOM HELPERS ====
     const $ = (id) => document.getElementById(id);
 
-    // ==== ROLE HELPERS ====
     const isAdmin = () => currentRole === "admin";
     const requireAdmin = () => {
       if (!isAdmin()) { alert("Bu bölmə yalnız ADMIN üçündür!"); return false; }
       return true;
     };
 
-    // ==== SAFE HELPERS ====
     const encName = (s) => encodeURIComponent(String(s));
     const decName = (s) => decodeURIComponent(String(s));
     const safeId = (s) => encodeURIComponent(String(s));
@@ -456,6 +450,25 @@
       if(v > 100) return 100;
       return v;
     }
+    function normalizeBalances(b){
+      const base = {"Nağd":0,"Kart":0,"Köçürmə":0};
+      const x = { ...base, ...(b||{}) };
+      for(const k of Object.keys(base)) x[k] = Number(x[k] || 0);
+      return x;
+    }
+    function getBusinessDayISO(){
+      return String(settingsCache?.businessDayISO || todayISO());
+    }
+    function setBizDayUI(){
+      const iso = getBusinessDayISO();
+      $("bizday").innerText = `Tarix: ${iso}`;
+      const st = settingsCache?.dayStatus || "open";
+      $("day-status").innerText = `Gün: ${st === "open" ? "Açıq" : "Bağlı"}`;
+
+      const b = normalizeBalances(settingsCache?.balances);
+      $("bal-box").innerText =
+        `Nağd: ${b["Nağd"].toFixed(2)} | Kart: ${b["Kart"].toFixed(2)} | Köç: ${b["Köçürmə"].toFixed(2)}`;
+    }
     function lowStockBadge(invItem){
       const q = Number(invItem.qty||0);
       const min = (invItem.minQty==null || invItem.minQty==="") ? 5 : Number(invItem.minQty);
@@ -476,34 +489,6 @@
       }
     }
 
-    function normalizeBalances(b){
-      const base = {"Nağd":0,"Kart":0,"Köçürmə":0};
-      const x = { ...base, ...(b||{}) };
-      for(const k of Object.keys(base)) x[k] = Number(x[k] || 0);
-      return x;
-    }
-
-    function getBusinessDayISO(){
-      return String(settingsCache?.businessDayISO || todayISO());
-    }
-
-    function setBizDayUI(){
-      const iso = getBusinessDayISO();
-      $("bizday").innerText = `Tarix: ${iso}`;
-      const st = settingsCache?.dayStatus || "open";
-      $("day-status").innerText = `Gün: ${st === "open" ? "Açıq" : "Bağlı"}`;
-
-      const b = normalizeBalances(settingsCache?.balances);
-      $("bal-box").innerText =
-        `Nağd: ${b["Nağd"].toFixed(2)} | Kart: ${b["Kart"].toFixed(2)} | Köç: ${b["Köçürmə"].toFixed(2)}`;
-    }
-
-    // “Kassa (hesab)” label üçün: ümumi balansların cəmi
-    function getTotalBalance(){
-      const b = normalizeBalances(settingsCache?.balances);
-      return (b["Nağd"] + b["Kart"] + b["Köçürmə"]);
-    }
-
     // ==== INIT DOCS ====
     async function ensureInitDocs(){
       const tSnap = await getDoc(refTables);
@@ -521,7 +506,6 @@
           balances: { "Nağd": 0, "Kart": 0, "Köçürmə": 0 }
         }, { merge: true });
       }else{
-        // lazımi field-lər yoxdursa əlavə et
         const d = sSnap.data() || {};
         const patch = {};
         if(!d.resetCode) patch.resetCode = "1234";
@@ -545,16 +529,11 @@
         onSnapshot(refSettings, (snap)=>{
           settingsCache = snap.exists() ? (snap.data()||{}) : null;
           setBizDayUI();
-          const cashLbl = $("cash-lbl");
-          if(cashLbl) cashLbl.innerText = getTotalBalance().toFixed(2);
 
-          // gün dəyişəndə default filtrlər biznes günə düşsün
+          // default filter: yalnız boşdursa doldur
           const iso = getBusinessDayISO();
-          if($("rep-from") && $("rep-to")){
-            // yalnız boşdursa doldur
-            if(!$("rep-from").value) $("rep-from").value = iso;
-            if(!$("rep-to").value) $("rep-to").value = iso;
-          }
+          if($("rep-from") && !$("rep-from").value) $("rep-from").value = iso;
+          if($("rep-to") && !$("rep-to").value) $("rep-to").value = iso;
           if($("z-date") && !$("z-date").value) $("z-date").value = iso;
         })
       );
@@ -631,6 +610,24 @@
     }
     async function setResetCode(newCode){
       await setDoc(refSettings, { resetCode: String(newCode) }, { merge: true });
+    }
+
+    async function logCashMove({ type, payType, amount, note }){
+      // cash_moves: type = opening/deposit/withdraw/adjust
+      const id = Date.now();
+      const obj = {
+        id,
+        dateISO: getBusinessDayISO(),
+        createdAt: new Date().toISOString(),
+        type,
+        payType,
+        amount: Number(amount || 0),
+        note: note || "",
+        createdByRole: isAdmin() ? "admin" : "staff",
+        createdByUid: currentUser?.uid || null,
+        createdByEmail: currentUser?.email || null
+      };
+      await setDoc(refBranch("cash_moves", String(id)), obj, { merge: true });
     }
 
     // ==== UI RENDER ====
@@ -749,9 +746,6 @@
           <td><i class="fa-solid fa-trash" style="cursor:pointer" onclick="deleteExpense(${e.id})"></i></td>
         </tr>
       `).join("");
-
-      const cashLbl = $("cash-lbl");
-      if(cashLbl) cashLbl.innerText = getTotalBalance().toFixed(2);
     }
 
     function fillReportTablesDropdown(){
@@ -762,7 +756,7 @@
       sel.value = curr || "";
     }
 
-    // ==== REPORTS (INFO BUTTON + MODAL) ====
+    // ==== REPORTS ====
     function renderReport(){
       if(!requireAdmin()) return;
 
@@ -799,9 +793,9 @@
         `<div class="glass-window" style="flex:1; height:auto; padding:12px;">Maya: <b>${cst.toFixed(2)}</b></div>` +
         `<div class="glass-window" style="flex:1; height:auto; padding:12px;">Xərc: <b>${expSum.toFixed(2)}</b></div>` +
         `<div class="glass-window" style="flex:1; height:auto; padding:12px;">Kassa (Nağd): <b>${bal["Nağd"].toFixed(2)}</b></div>` +
-        `<div class="glass-window" style="flex:1; height:auto; padding:12px;">Kart Balansı: <b>${bal["Kart"].toFixed(2)}</b></div>`;
+        `<div class="glass-window" style="flex:1; height:auto; padding:12px;">Kart Balansı: <b>${bal["Kart"].toFixed(2)}</b></div>` +
+        `<div class="glass-window" style="flex:1; height:auto; padding:12px;">Köçürmə: <b>${bal["Köçürmə"].toFixed(2)}</b></div>`;
 
-      // INFO modal üçün filtr aralığını saxla
       window.__repFilter = { from, to, tableFilter };
 
       const h = $("rep-history");
@@ -828,11 +822,7 @@
 
           h.innerHTML += `
             <tr>
-              <td>
-                <button class="btn-action" style="width:auto; padding:8px 10px; border-radius:12px; background:rgba(255,255,255,0.10);" onclick="openSaleInfo(${x.id})">
-                  <i class="fa-solid fa-circle-info"></i>
-                </button>
-              </td>
+              <td></td>
               <td>${x.dateISO || x.date || ""}</td>
               <td style="color:#10b981; font-weight:900;">Satış</td>
               <td>${det}</td>
@@ -857,78 +847,6 @@
       $("info-content").innerHTML = "";
       $("info-modal").style.display = "none";
     }
-
-    function openSaleInfo(saleId){
-      if(!requireAdmin()) return;
-
-      const sale = (sales || []).find(s => Number(s.id) === Number(saleId));
-      if(!sale) return alert("Çek tapılmadı!");
-
-      const t = sale.table || "N/A";
-      const filt = window.__repFilter || {};
-      const from = filt.from || "";
-      const to   = filt.to || "";
-
-      const normalizeISO = (x) => x.dateISO || toISOFromLocalDateString(x.date) || "";
-      const inRange = (iso) => {
-        if(!iso) return true;
-        if(from && iso < from) return false;
-        if(to && iso > to) return false;
-        return true;
-      };
-
-      const tableChecksCount = (sales || [])
-        .map(s => ({...s, dateISO: normalizeISO(s)}))
-        .filter(s => s.table === t && inRange(s.dateISO))
-        .length;
-
-      const items = (sale.items || []);
-      const itemsHtml = items.length
-        ? items.map(i => `
-            <div style="display:flex; justify-content:space-between; gap:10px; padding:8px 10px; border:1px solid rgba(255,255,255,0.08); border-radius:12px; margin-bottom:8px;">
-              <div style="font-weight:900; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${i.name}</div>
-              <div style="opacity:.9; font-weight:900;">x${Number(i.qty||0)}</div>
-              <div style="font-weight:900; color:var(--accent);">${(Number(i.price||0)*Number(i.qty||0)).toFixed(2)} AZN</div>
-            </div>
-          `).join("")
-        : `<div style="opacity:.8;">Sifariş detali yoxdur</div>`;
-
-      const who = sale.createdByRole === "admin"
-        ? `ADMIN (${sale.createdByEmail||"-"})`
-        : `OFİSİANT (${sale.createdByUid ? sale.createdByUid.slice(0,6) : "-"})`;
-
-      const html = `
-        <div style="display:flex; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
-          <div class="glass-window" style="height:auto; padding:12px; flex:1;">
-            <div style="opacity:.8; font-size:12px;">Masa</div>
-            <div style="font-weight:900; font-size:18px; color:var(--accent);">${t}</div>
-            <div style="opacity:.85; margin-top:6px;">Bu aralıqda çek sayı: <b>${tableChecksCount}</b></div>
-          </div>
-          <div class="glass-window" style="height:auto; padding:12px; flex:1;">
-            <div style="opacity:.8; font-size:12px;">Tarix / Ödəniş</div>
-            <div style="font-weight:900;">${sale.dateISO || sale.date || "-"} — ${sale.payType || "Nağd"}</div>
-            <div style="opacity:.85; margin-top:6px;">Vuran: <b>${who}</b></div>
-          </div>
-          <div class="glass-window" style="height:auto; padding:12px; flex:1;">
-            <div style="opacity:.8; font-size:12px;">Cəmi</div>
-            <div style="font-weight:900; font-size:18px; color:var(--accent);">${Number(sale.grandTotal ?? sale.revenue ?? 0).toFixed(2)} AZN</div>
-            <div style="opacity:.85; margin-top:6px;">Maya: <b>${Number(sale.cost||0).toFixed(2)}</b></div>
-          </div>
-        </div>
-
-        <div style="font-weight:900; color:var(--accent); margin: 6px 0 10px;">Sifarişlər</div>
-        ${itemsHtml}
-      `;
-
-      $("info-content").innerHTML = html;
-      $("info-modal").style.display = "flex";
-    }
-
-    document.addEventListener("click", (e) => {
-      const m = $("info-modal");
-      if(!m || m.style.display === "none") return;
-      if(e.target === m) closeInfoModal();
-    });
 
     function renderZReport(){
       if(!requireAdmin()) return;
@@ -1085,7 +1003,7 @@
         order.push({ name: n, qty: 1, price: Number(inventory[n].sell||0), cost: Number(inventory[n].cost||0) });
       }
 
-      await writeTablesState(); // ✅ staff yazanda da sağda dərhal görünür (realtime)
+      await writeTablesState();
     }
 
     async function updateOrderQty(encodedName, delta){
@@ -1138,7 +1056,6 @@
       inv.cost = c;
       inv.minQty = isNaN(m) ? (inv.minQty ?? 5) : m;
 
-      // inventory update (merge)
       await upsertInventoryItem(n, inv);
 
       const id = Date.now();
@@ -1162,7 +1079,7 @@
           const setSnap = await tx.get(refSettings);
           const setData = setSnap.exists() ? (setSnap.data()||{}) : {};
           const bal = normalizeBalances(setData.balances);
-          bal[payType] = Number(bal[payType]||0) - Number(total||0); // ✅ alış balansdan çıxır
+          bal[payType] = Number(bal[payType]||0) - Number(total||0);
           tx.set(refSettings, { balances: bal }, { merge: true });
         });
       }catch(err){
@@ -1191,7 +1108,6 @@
           if(!pSnap.exists()) throw new Error("Alış tapılmadı!");
           const p = pSnap.data();
 
-          // stock geri alınsın
           const invName = p.name;
           const invRef = refBranch("inventory", safeId(invName));
           const invSnap = await tx.get(invRef);
@@ -1204,13 +1120,12 @@
           tx.update(invRef, { qty: newQty });
           tx.delete(pRef);
 
-          // balansı geri qaytar (+)
           const setSnap = await tx.get(refSettings);
           const setData = setSnap.exists() ? (setSnap.data()||{}) : {};
           const bal = normalizeBalances(setData.balances);
           const payType = p.payType || "Nağd";
           const total = Number(p.total || (Number(p.qty||0)*Number(p.cost||0)));
-          bal[payType] = Number(bal[payType]||0) + total; // alış silinirsə pul geri
+          bal[payType] = Number(bal[payType]||0) + total;
           tx.set(refSettings, { balances: bal }, { merge: true });
         });
       } catch(err){
@@ -1232,7 +1147,6 @@
 
       try{
         await runTransaction(db, async (tx) => {
-          // READS
           const tablesSnap = await tx.get(refTables);
           if(!tablesSnap.exists()) throw new Error("Tables state tapılmadı!");
 
@@ -1248,7 +1162,6 @@
             invSnaps.push({ it, invRef, inv: invSnap.data() });
           }
 
-          // CALC
           let cst = 0;
           for(const x of invSnaps){
             const have = Number(x.inv.qty || 0);
@@ -1257,23 +1170,19 @@
             cst += Number(x.inv.cost || 0) * need;
           }
 
-          // WRITES: stock update
           for(const x of invSnaps){
             const have = Number(x.inv.qty || 0);
             const need = Number(x.it.qty || 0);
             tx.update(x.invRef, { qty: have - need });
           }
 
-          // WRITES: balances (sale +)
           bal[payType] = Number(bal[payType] || 0) + Number(totals.grand || 0);
           tx.set(refSettings, { balances: bal }, { merge: true });
 
-          // WHO
           const whoRole = isAdmin() ? "admin" : "staff";
           const whoUid = currentUser?.uid || null;
           const whoEmail = currentUser?.email || null;
 
-          // WRITES: sale doc
           const saleObj = {
             id: saleId,
             date: new Date().toLocaleDateString(),
@@ -1295,7 +1204,6 @@
           };
           tx.set(saleRef, saleObj, { merge: true });
 
-          // WRITES: clear table order
           const d = tablesSnap.data() || {};
           const tbl = Array.isArray(d.tables) && d.tables.length ? d.tables : tables;
           const ords = d.tableOrders || {};
@@ -1335,7 +1243,7 @@
           const setData = setSnap.exists() ? (setSnap.data()||{}) : {};
           const bal = normalizeBalances(setData.balances);
 
-          bal[payType] = Number(bal[payType] || 0) - Number(v || 0); // ✅ xərc balansdan çıxır
+          bal[payType] = Number(bal[payType] || 0) - Number(v || 0);
           tx.set(refSettings, { balances: bal }, { merge: true });
         });
 
@@ -1364,7 +1272,7 @@
           const bal = normalizeBalances(setData.balances);
 
           const payType = e.payType || "Nağd";
-          bal[payType] = Number(bal[payType]||0) + Number(e.val||0); // silinirsə geri qaytar
+          bal[payType] = Number(bal[payType]||0) + Number(e.val||0);
           tx.set(refSettings, { balances: bal }, { merge: true });
         });
       }catch(err){
@@ -1372,20 +1280,53 @@
       }
     }
 
-    // ===== DAY OPEN/CLOSE (admin) =====
+    // ===== START BALANCE / SHIFT BALANCE =====
     async function openDayPrompt(){
       if(!requireAdmin()) return;
-      const iso = prompt("Yeni günü aç (YYYY-MM-DD). Boş buraxsan bu gün açılacaq:", todayISO());
-      if(iso === null) return;
-      const newISO = String(iso || todayISO()).trim();
+
+      const isoInput = prompt("Yeni günü aç (YYYY-MM-DD). Boş buraxsan bu gün açılacaq:", todayISO());
+      if(isoInput === null) return;
+      const newISO = String(isoInput || todayISO()).trim();
       if(!newISO) return alert("Tarix boş ola bilməz!");
 
+      const cash = prompt("Başlanğıc NAĞD məbləği (AZN) (boş=0):", "0");
+      if(cash === null) return;
+      const card = prompt("Başlanğıc KART məbləği (AZN) (boş=0):", "0");
+      if(card === null) return;
+      const trans = prompt("Başlanğıc KÖÇÜRMƏ məbləği (AZN) (boş=0):", "0");
+      if(trans === null) return;
+
+      const c = Number(cash || 0);
+      const k = Number(card || 0);
+      const t = Number(trans || 0);
+      if([c,k,t].some(x => Number.isNaN(x) || x < 0)) return alert("Məbləğlər düzgün deyil!");
+
+      const resetBalances = confirm("Balansları SIFIRLAYIM?\nOK = sıfırla və bu məbləğlərlə başla\nCancel = mövcud balansa əlavə et");
+
       try{
-        await setDoc(refSettings, { businessDayISO: newISO, dayStatus: "open" }, { merge: true });
-        // default filtrlər yeni günə düşsün (yalnız açıq olanda)
+        await runTransaction(db, async (tx)=>{
+          const setSnap = await tx.get(refSettings);
+          const setData = setSnap.exists() ? (setSnap.data()||{}) : {};
+          const balNow = normalizeBalances(setData.balances);
+
+          const balNew = resetBalances
+            ? {"Nağd": c, "Kart": k, "Köçürmə": t}
+            : {"Nağd": balNow["Nağd"] + c, "Kart": balNow["Kart"] + k, "Köçürmə": balNow["Köçürmə"] + t};
+
+          tx.set(refSettings, { businessDayISO: newISO, dayStatus: "open", balances: balNew }, { merge: true });
+        });
+
+        // log (opening)
+        const note = resetBalances ? `Gün açılışı (SIFIRLA) ${newISO}` : `Gün açılışı (ƏLAVƏ) ${newISO}`;
+        if(c) await logCashMove({ type:"opening", payType:"Nağd", amount:c, note });
+        if(k) await logCashMove({ type:"opening", payType:"Kart", amount:k, note });
+        if(t) await logCashMove({ type:"opening", payType:"Köçürmə", amount:t, note });
+
+        // filtrləri yeni günə qoy
         $("rep-from").value = newISO;
         $("rep-to").value = newISO;
         $("z-date").value = newISO;
+
         alert("Gün açıldı: " + newISO);
       }catch(e){
         alert("Gün açılmadı!");
@@ -1395,14 +1336,81 @@
     async function closeDayPrompt(){
       if(!requireAdmin()) return;
       const iso = getBusinessDayISO();
-      const ok = confirm(`${iso} gününü bağlamaq istəyirsən? (Bağlananda default filtr sabahkı günə keçə bilər.)`);
+      const ok = confirm(`${iso} gününü bağlamaq istəyirsən?`);
       if(!ok) return;
 
       try{
         await setDoc(refSettings, { dayStatus: "closed" }, { merge: true });
-        alert("Gün bağlandı: " + iso + "\nSabah açmaq üçün: “Günü aç” düyməsini bas.");
+        alert("Gün bağlandı: " + iso);
       }catch(e){
         alert("Gün bağlanmadı!");
+      }
+    }
+
+    async function depositBalancePrompt(){
+      if(!requireAdmin()) return;
+
+      const payType = prompt("Hansı balans? Yaz: Nağd / Kart / Köçürmə", "Nağd");
+      if(payType === null) return;
+      const p = String(payType).trim();
+      if(!["Nağd","Kart","Köçürmə"].includes(p)) return alert("Yanlış seçim!");
+
+      const amountStr = prompt("Balansa əlavə ediləcək məbləğ (AZN):", "0");
+      if(amountStr === null) return;
+      const amount = Number(amountStr || 0);
+      if(Number.isNaN(amount) || amount <= 0) return alert("Məbləğ düzgün deyil!");
+
+      const note = prompt("Qeyd (istəsən):", "Kassaya pul əlavə edildi");
+      if(note === null) return;
+
+      try{
+        await runTransaction(db, async (tx)=>{
+          const setSnap = await tx.get(refSettings);
+          const setData = setSnap.exists() ? (setSnap.data()||{}) : {};
+          const bal = normalizeBalances(setData.balances);
+          bal[p] = Number(bal[p]||0) + amount;
+          tx.set(refSettings, { balances: bal }, { merge: true });
+        });
+
+        await logCashMove({ type:"deposit", payType:p, amount, note });
+        alert("Balans artırıldı!");
+      }catch(e){
+        alert("Əməliyyat alınmadı!");
+      }
+    }
+
+    async function withdrawBalancePrompt(){
+      if(!requireAdmin()) return;
+
+      const payType = prompt("Hansı balans? Yaz: Nağd / Kart / Köçürmə", "Nağd");
+      if(payType === null) return;
+      const p = String(payType).trim();
+      if(!["Nağd","Kart","Köçürmə"].includes(p)) return alert("Yanlış seçim!");
+
+      const amountStr = prompt("Balansdan çıxılacaq məbləğ (AZN):", "0");
+      if(amountStr === null) return;
+      const amount = Number(amountStr || 0);
+      if(Number.isNaN(amount) || amount <= 0) return alert("Məbləğ düzgün deyil!");
+
+      const note = prompt("Qeyd (istəsən):", "Kassadan pul çıxarıldı");
+      if(note === null) return;
+
+      try{
+        await runTransaction(db, async (tx)=>{
+          const setSnap = await tx.get(refSettings);
+          const setData = setSnap.exists() ? (setSnap.data()||{}) : {};
+          const bal = normalizeBalances(setData.balances);
+
+          if(Number(bal[p]||0) < amount) throw new Error("Balans yetərli deyil!");
+
+          bal[p] = Number(bal[p]||0) - amount;
+          tx.set(refSettings, { balances: bal }, { merge: true });
+        });
+
+        await logCashMove({ type:"withdraw", payType:p, amount, note });
+        alert("Balans azaldıldı!");
+      }catch(e){
+        alert(e?.message || "Əməliyyat alınmadı!");
       }
     }
 
@@ -1441,7 +1449,7 @@
       try{
         const batch = writeBatch(db);
 
-        const cols = ["inventory","purchases","sales","expenses"];
+        const cols = ["inventory","purchases","sales","expenses","cash_moves"];
         for(const c of cols){
           const snap = await getDocs(colBranch(c));
           snap.forEach(d => batch.delete(d.ref));
@@ -1452,8 +1460,6 @@
         newTables.forEach(t => newOrders[t] = []);
         batch.set(refTables, { tables: newTables, tableOrders: newOrders }, { merge: false });
 
-        // ✅ balances sıfırlansın?
-        // Sən istəsən sıfırlansın. Burda sıfırlayıram:
         batch.set(refSettings, {
           balances: {"Nağd":0,"Kart":0,"Köçürmə":0},
           businessDayISO: todayISO(),
@@ -1518,7 +1524,6 @@
         el.style.display = (currentRole === "admin" ? "inline-flex" : "none");
       });
 
-      // təhlükəsizlik: hər login-də POS-a qaytar (admin çıxıb staff girəndə report açılmasın)
       const firstNav = document.querySelector(".nav-item");
       if(firstNav) switchTab("pos", firstNav);
 
@@ -1534,7 +1539,6 @@
       $("login-overlay").style.display="flex";
       cancelAdmin();
 
-      // ✅ çıxışda inputlar təmizlənsin
       $("admin-email").value = "";
       $("admin-password").value = "";
 
@@ -1598,7 +1602,7 @@
 
     onAuthStateChanged(auth, (u) => { currentUser = u || null; });
 
-    // ==== EXPORTS ====
+    // EXPORTS
     window.promptAdmin = promptAdmin;
     window.cancelAdmin = cancelAdmin;
     window.tryAdminLogin = tryAdminLogin;
@@ -1631,11 +1635,12 @@
     window.resetDataPrompt = resetDataPrompt;
     window.setResetCodePrompt = setResetCodePrompt;
 
-    window.openSaleInfo = openSaleInfo;
     window.closeInfoModal = closeInfoModal;
 
     window.openDayPrompt = openDayPrompt;
     window.closeDayPrompt = closeDayPrompt;
+    window.depositBalancePrompt = depositBalancePrompt;
+    window.withdrawBalancePrompt = withdrawBalancePrompt;
   </script>
 </body>
 </html>
